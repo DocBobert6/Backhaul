@@ -35,8 +35,8 @@ android {
   defaultConfig {
     applicationId = "app.backhaul"
 
-    versionCode = 76
-    versionName = "20261007-1"
+    versionCode = 1
+    versionName = "0.1.0"
 
     minSdk = libs.versions.minSdk.get().toInt()
     targetSdk = libs.versions.targetSdk.get().toInt()

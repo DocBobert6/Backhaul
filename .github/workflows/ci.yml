@@ -6,12 +6,22 @@ name: Android CI
 # and runs the permanent guards (255-register dex guard). A red build stops
 # the line: fix it and verify green before pushing anything new.
 #
-# No release job here — the release workflow (tag push, signed APK attached
-# by the workflow itself) lands in Phase 1.
+# Phase 1: a push of a v* tag additionally builds the release APK and
+# uploads it as the backhaul-apk-release artifact. A second job
+# (release, needs: build) then creates the GitHub release for the tag
+# and attaches the release APK to it, using the workflow's own
+# GITHUB_TOKEN — the release asset upload MUST happen here, inside
+# Actions: uploading from outside returns 401 on uploads.github.com.
+# The release job only runs after the build job, so the release is
+# never created from an unverified build. (Poing alpha.2 pattern.)
+# NOTE: the release APK cannot be signed yet — the release keystore
+# and its secrets land with the Phase 1 finish, after this commit.
+# Until then a tag push goes red at the assembleRelease step.
 
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch:
 
 permissions:
@@ -176,3 +186,88 @@ jobs:
           name: backhaul-apk-debug
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Build release APK (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./gradlew :app:assembleRelease --stacktrace -Porg.gradle.java.installations.paths="$JAVA_HOME_21_X64,$JAVA_HOME_25_X64"
+
+      - name: Upload release APK artifact (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: backhaul-apk-release
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+  release:
+    name: Attach release APK to release
+    # Tags only, and only after the build job has built the release
+    # APK. The release is therefore never created from an unverified
+    # build.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    # The workflow-level permissions are contents: read; this job
+    # needs write to create the release and upload the asset.
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source (for the release notes)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: backhaul-apk-release
+          path: release-apk
+
+      - name: Create release and attach APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          APK_SRC=$(ls release-apk/*.apk)
+          [ "$(ls release-apk/*.apk | wc -l)" -eq 1 ] || {
+            echo "expected exactly one APK in release-apk/, found:"
+            ls -l release-apk/
+            exit 1
+          }
+          [ -s "$APK_SRC" ] || {
+            echo "release APK is empty: $APK_SRC"
+            exit 1
+          }
+          # A descriptive asset name: the raw Gradle output is
+          # app-release.apk. Same bytes, so the SHA-256 is unchanged.
+          APK="backhaul-$TAG.apk"
+          cp "$APK_SRC" "$APK"
+          SIZE=$(stat -c%s "$APK")
+          SHA256=$(sha256sum "$APK" | cut -d' ' -f1)
+          echo "attaching $APK ($SIZE bytes, sha256 $SHA256) to release $TAG"
+          # Final notes: the repo's RELEASE_NOTES.md plus a Build
+          # section carrying the exact bytes of the file being
+          # attached, so the release page shows the size and
+          # SHA-256.
+          {
+            cat RELEASE_NOTES.md
+            echo ""
+            echo "- Tag $TAG, commit $GITHUB_SHA; workflow run $GITHUB_RUN_ID."
+            echo "- Release APK: $APK, $SIZE bytes, SHA-256: \`$SHA256\`."
+          } > release-notes-final.md
+          # A re-run of the tag workflow (or a release created by
+          # hand) must not fail here: create only when missing —
+          # refreshing the notes in either case, since the notes
+          # file is the source of truth — then upload with
+          # --clobber so a stale asset is replaced rather than
+          # erroring.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists — refreshing its notes and uploading the asset"
+            gh release edit "$TAG" --notes-file release-notes-final.md
+          else
+            gh release create "$TAG" --title "Backhaul $TAG" --notes-file release-notes-final.md
+          fi
+          gh release upload "$TAG" "$APK" --clobber
+          echo "release $TAG now carries:"
+          gh release view "$TAG" --json assets --jq '.assets[].name'
