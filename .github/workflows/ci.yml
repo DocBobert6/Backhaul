@@ -59,26 +59,28 @@ jobs:
           # already accepted above), so no yes-pipe can fail the step;
           # --verbose so a failure names the package.
           "$SDKMANAGER" --verbose "build-tools;35.0.0" "build-tools;36.0.0" "build-tools;37.0.0" "platform-tools" < /dev/null
-          # platforms;android-37 is a PREVIEW platform (Android 17
-          # "CinnamonBun", beta) and is NOT in the stable channel repo
-          # as of 2026-11-15 -- the stable repo tops out at android-36
-          # (verified against dl.google.com's repository2-1.xml, which
-          # lists build-tools;37.0.0 but no android-37 platform). The
-          # upstream project targets compileSdk 37, so CI must fetch the
-          # platform from a preview channel: try beta (1), dev (2),
-          # canary (3) in turn; the first that produces the platform
-          # directory wins. (Upstream has no CI, so this is fork-only.)
-          if [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
-            for ch in 1 2 3; do
-              echo "--- trying sdkmanager channel $ch for platforms;android-37"
-              "$SDKMANAGER" --verbose --channel="$ch" "platforms;android-37" < /dev/null || true
-              if [ -d "$ANDROID_HOME/platforms/android-37" ]; then
-                echo "--- platforms;android-37 installed via channel $ch"
-                break
-              fi
+          # API 37 platform: the runner preinstalls it under MINOR
+          # version directories (android-37.0 / 37.1 / 37.2, plus beta
+          # variants) -- there is no bare android-37 directory, and no
+          # sdkmanager channel (stable/beta/dev/canary, all tried in
+          # run 3) offers a package named platforms;android-37. So a
+          # preinstalled android-37.* directory satisfies the
+          # requirement; only if none exists do we try installing one.
+          if ! ls -d "$ANDROID_HOME/platforms/android-37"* >/dev/null 2>&1; then
+            for pkg in "platforms;android-37" "platforms;android-37.0"; do
+              for ch in 1 2 3; do
+                echo "--- trying sdkmanager channel $ch for $pkg"
+                "$SDKMANAGER" --verbose --channel="$ch" "$pkg" < /dev/null || true
+                if ls -d "$ANDROID_HOME/platforms/android-37"* >/dev/null 2>&1; then
+                  echo "--- API 37 platform installed via channel $ch ($pkg)"
+                  break 2
+                fi
+              done
             done
           fi
-          test -d "$ANDROID_HOME/platforms/android-37" || { echo "FATAL: platforms;android-37 could not be installed (not in the stable repo; preview channels 1/2/3 also failed)"; exit 1; }
+          ls -d "$ANDROID_HOME/platforms/android-37"* >/dev/null 2>&1 || { echo "FATAL: no android-37 platform directory (stable repo has none; preview channels 1/2/3 offer no platforms;android-37 or platforms;android-37.0)"; exit 1; }
+          echo "--- API 37 platform directories present:"
+          ls -d "$ANDROID_HOME/platforms/android-37"* || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
