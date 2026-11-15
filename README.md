@@ -4,35 +4,7 @@ Share your Android device's Internet connection with other devices without needi
 
 ## Get Backhaul
 
-### Google Play (Google Play APK)
-
-#### Official releases are ONLY published to the Google Play Store.
-
-[<img
-src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
-alt="Get it on Google Play"
-height="80">](https://play.google.com/store/apps/details?id=com.pyamsoft.tetherfi)
-
-### Unofficial Releases / Community Supported
-
-
-#### FDroid (FDroid APK) (IzzyOnDroid Repository)
-
-[<img
-src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png"
-alt="Get it on IzzyOnDroid"
-height="80">](https://apt.izzysoft.de/fdroid/index/apk/com.pyamsoft.tetherfi)
-
-#### OpenAPK (FDroid APK)
-
-[<img
-src="https://www.openapk.net/images/openapk-badge.png"
-alt="Get it on OpenAPK"
-height="80">](https://www.openapk.net/tetherfi/com.pyamsoft.tetherfi/)
-
-#### Github Releases (FDroid APK)
-
-or get the APK from the
+Official releases are published on GitHub only. Get the APK from the
 [Releases Section](https://github.com/DocBobert6/Backhaul/releases/latest).
 
 ## Screenshots
