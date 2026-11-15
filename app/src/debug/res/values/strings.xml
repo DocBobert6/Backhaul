@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <resources>
-  <string name="app_name">TetherFuseNet (DEV)</string>
+  <string name="app_name">Backhaul (DEV)</string>
   <string
     name="toggle_hotspot_shortcut"
-  >Toggle TetherFuseNet (DEV) Hotspot</string>
+  >Toggle Backhaul (DEV) Hotspot</string>
 </resources>

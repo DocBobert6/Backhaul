@@ -92,7 +92,7 @@ gradle.lifecycle.beforeProject {
   }
 }
 
-rootProject.name = "TetherFuseNet"
+rootProject.name = "Backhaul"
 
 include(":app")
 

@@ -1,8 +1,8 @@
-# TetherFuseNet
+# Backhaul
 
 Share your Android device's Internet connection with other devices without needing Root.
 
-## Get TetherFuseNet
+## Get Backhaul
 
 ### Google Play (Google Play APK)
 
@@ -33,7 +33,7 @@ height="80">](https://www.openapk.net/tetherfi/com.pyamsoft.tetherfi/)
 #### Github Releases (FDroid APK)
 
 or get the APK from the
-[Releases Section](https://github.com/pyamsoft/tetherfusenet/releases/latest).
+[Releases Section](https://github.com/DocBobert6/Backhaul/releases/latest).
 
 ## Screenshots
 
@@ -121,7 +121,7 @@ required to use the application or any features.
 
 TetherFuseNet is developed in the open on GitHub at:
 
-[https://github.com/pyamsoft/tetherfusenet](https://github.com/pyamsoft/tetherfusenet)
+[https://github.com/DocBobert6/Backhaul](https://github.com/DocBobert6/Backhaul)
 
 If you know a few things about Android programming and want to help out with
 development, you can do so by creating issue tickets to squash bugs, and

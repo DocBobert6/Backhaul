@@ -22,8 +22,8 @@
   >
     <intent
       android:action="android.intent.action.VIEW"
-      android:targetClass="com.pyamsoft.tetherfi.tile.ProxyTileActivity"
-      android:targetPackage="com.pyamsoft.tetherfi"
+      android:targetClass="app.backhaul.tile.ProxyTileActivity"
+      android:targetPackage="app.backhaul"
     />
   </shortcut>
 </shortcuts>

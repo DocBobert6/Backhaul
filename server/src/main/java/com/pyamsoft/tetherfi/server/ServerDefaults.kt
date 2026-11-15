@@ -23,12 +23,11 @@ import androidx.annotation.ChecksSdkIntAtLeast
 object ServerDefaults {
 
   /**
-   * This SSID must be kept as the default "TetherFi" which is the old app name
+   * Default SSID for the Backhaul fork (upstream used "TetherFi", the old app name).
    *
-   * Otherwise it will cause upgrading users to have to re-setup the network, which we do not want
-   * them to do
+   * The fork has no upstream users to protect, so the default changes with the rename.
    */
-  const val WIFI_SSID = "TetherFi"
+  const val WIFI_SSID = "Backhaul"
 
   /** Default port for HTTP server */
   const val HTTP_PORT = 8228
@@ -38,7 +37,7 @@ object ServerDefaults {
 
   val WIFI_NETWORK_BAND = ServerNetworkBand.LEGACY
 
-  const val WIFI_SSID_PREFIX = "DIRECT-TF-"
+  const val WIFI_SSID_PREFIX = "DIRECT-BH-"
 
   @JvmStatic
   @CheckResult

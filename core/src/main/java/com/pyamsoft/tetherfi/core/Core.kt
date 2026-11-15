@@ -16,7 +16,7 @@
 
 package com.pyamsoft.tetherfi.core
 
-const val GITHUB_URL = "https://github.com/pyamsoft/tetherfusenet"
-const val PRIVACY_POLICY_URL = "https://pyamsoft.blogspot.com/p/tetherfi-privacy-policy.html"
+const val GITHUB_URL = "https://github.com/DocBobert6/Backhaul"
+const val PRIVACY_POLICY_URL = "https://github.com/DocBobert6/Backhaul/blob/main/PRIVACY_POLICY.md"
 const val TERMS_CONDITIONS_URL =
-    "https://pyamsoft.blogspot.com/p/tetherfi-terms-and-conditions.html"
+    "https://github.com/DocBobert6/Backhaul/blob/main/TERMS_AND_CONDITIONS.md"

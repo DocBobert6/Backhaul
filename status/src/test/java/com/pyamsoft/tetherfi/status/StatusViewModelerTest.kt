@@ -86,7 +86,7 @@ private class FakeWifiPreferences : WifiPreferences {
   val setPasswordCalls = mutableListOf<String>()
   val setNetworkBandCalls = mutableListOf<ServerNetworkBand>()
 
-  override fun listenForSsidChanges(): Flow<String> = MutableStateFlow("TetherFi")
+  override fun listenForSsidChanges(): Flow<String> = MutableStateFlow("Backhaul")
 
   override fun setSsid(ssid: String) {
     setSsidCalls.add(ssid)

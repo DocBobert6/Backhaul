@@ -33,7 +33,7 @@ android {
   compileSdk = libs.versions.compileSdk.get().toInt()
 
   defaultConfig {
-    applicationId = "com.pyamsoft.tetherfi"
+    applicationId = "app.backhaul"
 
     versionCode = 76
     versionName = "20261007-1"
