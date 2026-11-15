@@ -24,7 +24,6 @@ import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.core.LintIgnoreTooManyFunctions
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.util.AppDispatchers
-import com.pyamsoft.tetherfi.core.InAppRatingPreferences
 import com.pyamsoft.tetherfi.core.Timber
 import com.pyamsoft.tetherfi.server.TweakPreferences
 import com.pyamsoft.tetherfi.server.event.ServerShutdownEvent
@@ -51,7 +50,6 @@ import kotlinx.coroutines.withContext
 internal class ClientManagerImpl
 @Inject
 internal constructor(
-    private val inAppRatingPreferences: InAppRatingPreferences,
     private val clock: Clock,
     private val shutdownBus: EventBus<ServerShutdownEvent>,
     private val tweakPreferences: TweakPreferences,
@@ -107,7 +105,6 @@ internal constructor(
 
   private fun onNewClientSeen(client: TetherClient) {
     Timber.d { "First time seeing client: $client" }
-    inAppRatingPreferences.markDeviceConnected()
   }
 
   @VisibleForTesting

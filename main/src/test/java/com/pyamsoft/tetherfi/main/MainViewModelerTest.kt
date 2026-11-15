@@ -22,7 +22,6 @@ import android.os.IBinder
 import com.pyamsoft.pydroid.core.createThreadEnforcer
 import com.pyamsoft.pydroid.util.AppDispatchers
 import com.pyamsoft.tetherfi.core.AppCoroutineScope
-import com.pyamsoft.tetherfi.core.InAppRatingPreferences
 import com.pyamsoft.tetherfi.server.ExpertPreferences
 import com.pyamsoft.tetherfi.server.ProxyPreferences
 import com.pyamsoft.tetherfi.server.ServerSocketTimeout
@@ -108,16 +107,6 @@ private class FakeBroadcastObserver : BroadcastObserver {
   override fun listenNetworkEvents(): Flow<BroadcastEvent> = emptyFlow()
 }
 
-private class FakeInAppRatingPreferences : InAppRatingPreferences {
-  override fun listenShowInAppRating(): Flow<Boolean> = MutableStateFlow(false)
-
-  override fun markHotspotUsed() = Unit
-
-  override fun markAppOpened() = Unit
-
-  override fun markDeviceConnected() = Unit
-}
-
 private class FakeProxyPreferences : ProxyPreferences {
   val setPortCalls = mutableListOf<Int>()
   val setHttpEnabledCalls = mutableListOf<Boolean>()
@@ -181,7 +170,6 @@ private fun newViewModeler(
     networkStatus: BroadcastNetworkStatus = FakeBroadcastNetworkStatus(),
     networkUpdater: BroadcastNetworkUpdater = FakeBroadcastNetworkUpdater(),
     broadcastObserver: BroadcastObserver = FakeBroadcastObserver(),
-    inAppRatingPreferences: InAppRatingPreferences = FakeInAppRatingPreferences(),
     proxyPreferences: ProxyPreferences = FakeProxyPreferences(),
     expertPreferences: ExpertPreferences = FakeExpertPreferences(),
     serviceLauncher: ServiceLauncher = newServiceLauncher(),
@@ -195,7 +183,6 @@ private fun newViewModeler(
         networkStatus = networkStatus,
         networkUpdater = networkUpdater,
         broadcastObserver = broadcastObserver,
-        inAppRatingPreferences = inAppRatingPreferences,
         proxyPreferences = proxyPreferences,
         expertPreferences = expertPreferences,
         serviceLauncher = serviceLauncher,
@@ -491,7 +478,7 @@ class MainViewModelerTest {
 
     val bindScope = CoroutineScope(Job())
     try {
-      viewModeler.bind(bindScope) {}
+      viewModeler.bind(bindScope)
 
       networkStatus.statusFlow.value = RunningStatus.NotRunning
 
@@ -518,7 +505,7 @@ class MainViewModelerTest {
 
         val bindScope = CoroutineScope(Job())
         try {
-          viewModeler.bind(bindScope) {}
+          viewModeler.bind(bindScope)
 
           networkStatus.statusFlow.value = RunningStatus.Running
 
@@ -543,7 +530,7 @@ class MainViewModelerTest {
 
     val bindScope = CoroutineScope(Job())
     try {
-      viewModeler.bind(bindScope) {}
+      viewModeler.bind(bindScope)
 
       networkStatus.statusFlow.value = RunningStatus.HotspotError(RuntimeException())
       state.isShowingSetupError.first { it }

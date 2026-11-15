@@ -32,12 +32,6 @@ internal object PreferenceKeys {
 
   val IS_SOCKS_ENABLED = booleanPreferencesKey("key_socks_enabled_1")
 
-  val IN_APP_HOTSPOT_USED = intPreferencesKey("key_in_app_hotspot_used_1")
-  val IN_APP_DEVICES_CONNECTED = intPreferencesKey("key_in_app_devices_connected_1")
-  val IN_APP_APP_OPENED = intPreferencesKey("key_in_app_app_opened_1")
-
-  val IN_APP_RATING_SHOWN_VERSION = intPreferencesKey("key_in_app_rating_shown_version")
-
   val START_IGNORE_VPN = booleanPreferencesKey("key_start_ignore_vpn_1")
   val START_IGNORE_LOCATION = booleanPreferencesKey("key_start_ignore_location_1")
 

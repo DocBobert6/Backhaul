@@ -19,7 +19,6 @@ package com.pyamsoft.tetherfi.server.clients
 import android.annotation.SuppressLint
 import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.util.AppDispatchers
-import com.pyamsoft.tetherfi.core.InAppRatingPreferences
 import com.pyamsoft.tetherfi.server.TweakPreferences
 import java.time.Clock
 import java.time.Instant
@@ -56,21 +55,6 @@ private class MutableClock(
   fun nowLocalDateTime(): LocalDateTime = LocalDateTime.now(this)
 }
 
-private class FakeInAppRatingPreferences : InAppRatingPreferences {
-  var deviceConnectedCount = 0
-    private set
-
-  override fun listenShowInAppRating(): Flow<Boolean> = MutableStateFlow(false)
-
-  override fun markHotspotUsed() = Unit
-
-  override fun markAppOpened() = Unit
-
-  override fun markDeviceConnected() {
-    deviceConnectedCount += 1
-  }
-}
-
 private class FakeTweakPreferences : TweakPreferences {
   override fun listenForStartIgnoreVpn(): Flow<Boolean> = MutableStateFlow(false)
 
@@ -92,11 +76,9 @@ private class FakeTweakPreferences : TweakPreferences {
 private fun newManager(
     clock: Clock,
     dispatchers: AppDispatchers,
-    inAppRatingPreferences: InAppRatingPreferences = FakeInAppRatingPreferences(),
     tweakPreferences: TweakPreferences = FakeTweakPreferences(),
 ): ClientManagerImpl =
     ClientManagerImpl(
-        inAppRatingPreferences = inAppRatingPreferences,
         clock = clock,
         shutdownBus = EventBus.create(),
         dispatchers = dispatchers,
@@ -107,11 +89,9 @@ class ClientManagerImplTest {
 
   @Test
   fun `only report new client once`() = runTest {
-    val ratingPreferences = FakeInAppRatingPreferences()
     val manager =
         newManager(
             clock = MutableClock(Instant.EPOCH),
-            inAppRatingPreferences = ratingPreferences,
             // TODO(Peter): Do we need test dispatchers?
             dispatchers = AppDispatchers.create(),
         )
@@ -120,7 +100,6 @@ class ClientManagerImplTest {
     val second = manager.ensure("1.2.3.4")
 
     assertSame(first, second)
-    assertEquals(1, ratingPreferences.deviceConnectedCount)
     assertEquals(1, manager.listenForClients().first().size)
   }
 

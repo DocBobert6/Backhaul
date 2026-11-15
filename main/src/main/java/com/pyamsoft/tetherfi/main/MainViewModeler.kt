@@ -26,7 +26,6 @@ import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.pydroid.core.cast
 import com.pyamsoft.pydroid.util.AppDispatchers
 import com.pyamsoft.tetherfi.core.AppCoroutineScope
-import com.pyamsoft.tetherfi.core.InAppRatingPreferences
 import com.pyamsoft.tetherfi.core.Timber
 import com.pyamsoft.tetherfi.server.ExpertPreferences
 import com.pyamsoft.tetherfi.server.ProxyPreferences
@@ -46,11 +45,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainViewModeler
 @Inject
@@ -62,7 +59,6 @@ internal constructor(
     private val networkStatus: BroadcastNetworkStatus,
     private val networkUpdater: BroadcastNetworkUpdater,
     private val broadcastObserver: BroadcastObserver,
-    private val inAppRatingPreferences: InAppRatingPreferences,
     private val proxyPreferences: ProxyPreferences,
     private val expertPreferences: ExpertPreferences,
     private val serviceLauncher: ServiceLauncher,
@@ -199,26 +195,6 @@ internal constructor(
     }
   }
 
-  private fun listenInAppRatingPrompt(
-      scope: CoroutineScope,
-      onShowInAppRating: () -> Unit,
-  ) {
-    inAppRatingPreferences
-        .listenShowInAppRating()
-        .filter { it }
-        .distinctUntilChanged()
-        .also { f ->
-          scope.launch(context = dispatchers.default) {
-            f.collect { show ->
-              if (show) {
-                Timber.d { "Show in-app rating" }
-                withContext(context = dispatchers.main) { onShowInAppRating() }
-              }
-            }
-          }
-        }
-  }
-
   @CheckResult
   private fun resolveErrorFlow(): Flow<Boolean> =
       combineTransform(
@@ -320,17 +296,12 @@ internal constructor(
 
   fun bind(
       scope: CoroutineScope,
-      onShowInAppRating: () -> Unit,
   ) {
     listenConfigUpdates(scope = scope)
     listenServerUpdates(scope = scope)
     listenBroadcastUpdates(scope = scope)
     listenProxySetupError(scope = scope)
     listenServerStatus(scope = scope)
-    listenInAppRatingPrompt(
-        scope = scope,
-        onShowInAppRating = onShowInAppRating,
-    )
   }
 
   fun handleRefreshConnectionInfo(scope: CoroutineScope) {
@@ -388,10 +359,6 @@ internal constructor(
           state.isShowingProxyError.value = false
         }
       }
-
-  fun handleAnalyticsMarkOpened() {
-    inAppRatingPreferences.markAppOpened()
-  }
 
   fun handleDismissBlocker(blocker: HotspotStartBlocker) {
     state.startBlockers.update { it - blocker }

@@ -38,7 +38,6 @@ import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.util.AppDispatchers
 import com.pyamsoft.tetherfi.behavior.BehaviorAppModule
 import com.pyamsoft.tetherfi.core.CoreAppModule
-import com.pyamsoft.tetherfi.core.InAppRatingPreferences
 import com.pyamsoft.tetherfi.core.Timber
 import com.pyamsoft.tetherfi.foreground.ForegroundServiceComponent
 import com.pyamsoft.tetherfi.foreground.ProxyForegroundService
@@ -91,10 +90,6 @@ private val Context.dataStore: DataStore<Preferences> by
                           PreferenceKeys.PASSWORD.name,
                           PreferenceKeys.PORT.name,
                           PreferenceKeys.NETWORK_BAND.name,
-                          PreferenceKeys.IN_APP_HOTSPOT_USED.name,
-                          PreferenceKeys.IN_APP_DEVICES_CONNECTED.name,
-                          PreferenceKeys.IN_APP_APP_OPENED.name,
-                          PreferenceKeys.IN_APP_RATING_SHOWN_VERSION.name,
                           PreferenceKeys.START_IGNORE_VPN.name,
                           PreferenceKeys.START_IGNORE_LOCATION.name,
                           PreferenceKeys.SHUTDOWN_NO_CLIENTS.name,
@@ -164,9 +159,6 @@ internal interface TFAppComponent {
     @Binds internal abstract fun bindProxyPreferences(impl: PreferencesImpl): ProxyPreferences
 
     @Binds internal abstract fun bindStatusPreferences(impl: PreferencesImpl): StatusPreferences
-
-    @Binds
-    internal abstract fun bindInAppRatingPreferences(impl: PreferencesImpl): InAppRatingPreferences
 
     @Binds
     internal abstract fun bindPermissionRequestConsumer(

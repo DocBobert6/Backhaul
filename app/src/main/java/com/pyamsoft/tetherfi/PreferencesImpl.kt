@@ -28,7 +28,6 @@ import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.pydroid.util.AppDispatchers
 import com.pyamsoft.pydroid.util.ifNotCancellation
 import com.pyamsoft.tetherfi.core.AppCoroutineScope
-import com.pyamsoft.tetherfi.core.InAppRatingPreferences
 import com.pyamsoft.tetherfi.core.Timber
 import com.pyamsoft.tetherfi.server.ExpertPreferences
 import com.pyamsoft.tetherfi.server.ProxyPreferences
@@ -45,7 +44,6 @@ import javax.inject.Singleton
 import kotlin.random.Random
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -63,7 +61,6 @@ internal constructor(
 ) :
     StatusPreferences,
     ProxyPreferences,
-    InAppRatingPreferences,
     TweakPreferences,
     ExpertPreferences,
     WifiPreferences {
@@ -111,18 +108,6 @@ internal constructor(
             preferences.edit { it[key] = value }
             emit(value)
           }
-
-  @CheckResult
-  private fun Int.isInAppRatingAlreadyShown(): Boolean {
-    enforcer.assertOffMainThread()
-
-    val self = this
-    return self > 0 && self == BuildConfig.VERSION_CODE
-  }
-
-  @CheckResult
-  private fun getInAppRatingShownVersion(preferences: Preferences): Int =
-      preferences[PreferenceKeys.IN_APP_RATING_SHOWN_VERSION] ?: 0
 
   override fun listenForSsidChanges(): Flow<String> =
       getPreference(key = PreferenceKeys.SSID, value = ServerDefaults.WIFI_SSID)
@@ -280,106 +265,6 @@ internal constructor(
           key = PreferenceKeys.PREFERRED_NETWORK,
           fallbackValue = PreferredNetwork.NONE.name,
           value = { network.name },
-      )
-
-  override fun listenShowInAppRating(): Flow<Boolean> =
-      combineTransform(
-              preferences.data.map { it[PreferenceKeys.IN_APP_HOTSPOT_USED] ?: 0 },
-              preferences.data.map { it[PreferenceKeys.IN_APP_DEVICES_CONNECTED] ?: 0 },
-              preferences.data.map { it[PreferenceKeys.IN_APP_APP_OPENED] ?: 0 },
-              preferences.data.map { it[PreferenceKeys.IN_APP_RATING_SHOWN_VERSION] ?: 0 },
-          ) { hotspotUsed, devicesConnected, appOpened, lastVersionShown ->
-            enforcer.assertOffMainThread()
-
-            Timber.d {
-              "In app rating check: ${
-                    mapOf(
-                        "lastVersion" to lastVersionShown,
-                        "isAlreadyShown" to lastVersionShown.isInAppRatingAlreadyShown(),
-                        "hotspotUsed" to hotspotUsed,
-                        "devicesConnected" to devicesConnected,
-                        "appOpened" to appOpened,
-                    )
-                }"
-            }
-
-            if (lastVersionShown.isInAppRatingAlreadyShown()) {
-              Timber.w { "Already shown in-app rating for version: $lastVersionShown" }
-              emit(false)
-            } else {
-              val show = hotspotUsed >= 3 && devicesConnected >= 2 && appOpened >= 7
-              emit(show)
-
-              if (show) {
-                // Commit this edit so that it fires immediately before we process again
-                preferences.edit { settings ->
-                  // Reset the previous flags
-                  settings[PreferenceKeys.IN_APP_APP_OPENED] = 0
-                  settings[PreferenceKeys.IN_APP_HOTSPOT_USED] = 0
-                  settings[PreferenceKeys.IN_APP_DEVICES_CONNECTED] = 0
-
-                  // And mark the latest version
-                  settings[PreferenceKeys.IN_APP_RATING_SHOWN_VERSION] = BuildConfig.VERSION_CODE
-                }
-              }
-            }
-          }
-          .catch { err ->
-            Timber.e(err) { "Error listening for composite showAppRating" }
-            preferences.edit { settings ->
-              settings[PreferenceKeys.IN_APP_APP_OPENED] = 0
-              settings[PreferenceKeys.IN_APP_HOTSPOT_USED] = 0
-              settings[PreferenceKeys.IN_APP_DEVICES_CONNECTED] = 0
-              settings[PreferenceKeys.IN_APP_RATING_SHOWN_VERSION] = 0
-            }
-            emit(false)
-          }
-          // Need this or we run on the main thread
-          .flowOn(context = dispatchers.io)
-
-  override fun markHotspotUsed() =
-      setPreference(
-          key = PreferenceKeys.IN_APP_HOTSPOT_USED,
-          fallbackValue = 0,
-          value = { settings ->
-            val version = getInAppRatingShownVersion(settings)
-            val current = settings[PreferenceKeys.IN_APP_HOTSPOT_USED] ?: 0
-            if (version.isInAppRatingAlreadyShown()) {
-              return@setPreference current
-            }
-
-            return@setPreference current + 1
-          },
-      )
-
-  override fun markAppOpened() =
-      setPreference(
-          key = PreferenceKeys.IN_APP_APP_OPENED,
-          fallbackValue = 0,
-          value = { settings ->
-            val version = getInAppRatingShownVersion(settings)
-            val current = settings[PreferenceKeys.IN_APP_APP_OPENED] ?: 0
-            if (version.isInAppRatingAlreadyShown()) {
-              return@setPreference current
-            }
-
-            return@setPreference current + 1
-          },
-      )
-
-  override fun markDeviceConnected() =
-      setPreference(
-          key = PreferenceKeys.IN_APP_DEVICES_CONNECTED,
-          fallbackValue = 0,
-          value = { settings ->
-            val version = getInAppRatingShownVersion(settings)
-            val current = settings[PreferenceKeys.IN_APP_DEVICES_CONNECTED] ?: 0
-            if (version.isInAppRatingAlreadyShown()) {
-              return@setPreference current
-            }
-
-            return@setPreference current + 1
-          },
       )
 
   override fun listenForSocketTimeout(): Flow<ServerSocketTimeout> =

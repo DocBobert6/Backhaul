@@ -91,10 +91,6 @@ class MainActivity : ComponentActivity() {
         )
   }
 
-  private fun handleShowInAppRating() {
-    pydroid?.loadInAppRating()
-  }
-
   private fun setupActivity() {
     // Setup PYDroid first
     initializePYDroid()
@@ -185,7 +181,6 @@ class MainActivity : ComponentActivity() {
             appName = appName,
             allDestinations = allDestinations,
             pagerState = pagerState,
-            onShowInAppRating = { handleShowInAppRating() },
             onUpdateTile = { ProxyTileService.updateTile(this) },
             onLaunchIntent = { safeOpenSettingsIntent(it) },
         )

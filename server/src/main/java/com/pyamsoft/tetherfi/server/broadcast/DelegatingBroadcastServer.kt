@@ -28,7 +28,6 @@ import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.util.AppDispatchers
 import com.pyamsoft.pydroid.util.ifNotCancellation
 import com.pyamsoft.tetherfi.core.AppDevEnvironment
-import com.pyamsoft.tetherfi.core.InAppRatingPreferences
 import com.pyamsoft.tetherfi.core.Timber
 import com.pyamsoft.tetherfi.server.BaseServer
 import com.pyamsoft.tetherfi.server.ExpertPreferences
@@ -69,7 +68,6 @@ internal class DelegatingBroadcastServer
 internal constructor(
     private val proxy: SharedProxy,
     private val expertPreferences: ExpertPreferences,
-    private val inAppRatingPreferences: InAppRatingPreferences,
     private val shutdownBus: EventBus<ServerShutdownEvent>,
     private val permissionGuard: PermissionGuard,
     private val appEnvironment: AppDevEnvironment,
@@ -582,7 +580,6 @@ internal constructor(
       resolveImplementation()
           .onNetworkStarted(scope = this, lock = lock, connectionStatus = connectionStatus)
     }
-    scope.launch(context = dispatchers.default) { inAppRatingPreferences.markHotspotUsed() }
     scope.launch(context = dispatchers.default) {
       proxy.start(
           lock = lock,

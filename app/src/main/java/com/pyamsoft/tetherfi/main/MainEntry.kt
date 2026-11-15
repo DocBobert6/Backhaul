@@ -26,8 +26,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -128,10 +126,7 @@ private fun MountHooks(
     allDestinations: List<MainView>,
     permissionResponseBus: Flow<PermissionResponse>,
     onToggleProxy: CoroutineScope.() -> Unit,
-    onShowInAppRating: () -> Unit,
 ) {
-  val handleShowInAppRating by rememberUpdatedState(onShowInAppRating)
-
   SaveStateDisposableEffect(viewModel)
 
   WatchTabSwipe(
@@ -150,14 +145,7 @@ private fun MountHooks(
   LaunchedEffect(viewModel) {
     viewModel.bind(
         scope = this,
-        onShowInAppRating = { handleShowInAppRating() },
     )
-  }
-
-  LifecycleEventEffect(
-      event = Lifecycle.Event.ON_START,
-  ) {
-    viewModel.handleAnalyticsMarkOpened()
   }
 }
 
@@ -169,14 +157,11 @@ fun MainEntry(
     pagerState: PagerState,
 
     // Action
-    onShowInAppRating: () -> Unit,
     onLaunchIntent: (String) -> Unit,
 
     // Tile
     onUpdateTile: (RunningStatus) -> Unit,
 ) {
-  val handleShowInAppRating by rememberUpdatedState(onShowInAppRating)
-
   val scope = rememberCoroutineScope()
   val component = rememberComposableInjector { MainInjector() }
   val viewModel = rememberNotNull(component.viewModel)
@@ -206,7 +191,6 @@ fun MainEntry(
       pagerState = pagerState,
       allDestinations = allDestinations,
       dispatchers = dispatchers,
-      onShowInAppRating = { handleShowInAppRating() },
       onToggleProxy = { viewModel.handleToggleProxy() },
   )
 
