@@ -14,9 +14,12 @@ name: Android CI
 # Actions: uploading from outside returns 401 on uploads.github.com.
 # The release job only runs after the build job, so the release is
 # never created from an unverified build. (Poing alpha.2 pattern.)
-# NOTE: the release APK cannot be signed yet — the release keystore
-# and its secrets land with the Phase 1 finish, after this commit.
-# Until then a tag push goes red at the assembleRelease step.
+# Release signing: the keystore arrives base64-encoded in the
+# BUNDLE_KEYSTORE_BASE64 secret and is restored into app/ by the
+# "Restore release keystore" step on tag builds; local.properties is
+# then rewritten with the real BUNDLE_* values from secrets. The
+# placeholder local.properties below only covers non-tag builds,
+# which never use the release signing config.
 
 on:
   push:
@@ -101,9 +104,10 @@ jobs:
           # The release signing config in app/build.gradle.kts reads
           # BUNDLE_* from local.properties at configuration time, so a
           # build without the file fails before it starts — even a debug
-          # build. CI has no release keystore (Phase 1), so this file
-          # carries placeholders; the release config is never used by a
-          # debug build.
+          # build. On non-tag builds this file carries placeholders;
+          # the release config is never used by a debug build. On tag
+          # builds the "Restore release keystore" step below rewrites
+          # it with the real values before assembleRelease runs.
           cat > local.properties <<'EOF'
           BUNDLE_STORE_FILE=CANNOT BUILD
           BUNDLE_KEY_ALIAS=CANNOT BUILD
@@ -187,9 +191,62 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
+      - name: Restore release keystore (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          # The keystore itself is never in the repo: it arrives
+          # base64-encoded in the BUNDLE_KEYSTORE_BASE64 secret and
+          # is written into app/, where the release signing config
+          # finds it through local.properties (see
+          # app/build.gradle.kts). The runner is wiped after the run.
+          echo "$BUNDLE_KEYSTORE_BASE64" | base64 -d > app/backhaul-release.keystore
+          cat > local.properties <<EOF
+          BUNDLE_STORE_FILE=$BUNDLE_STORE_FILE
+          BUNDLE_KEY_ALIAS=$BUNDLE_KEY_ALIAS
+          BUNDLE_KEY_PASSWD=$BUNDLE_KEY_PASSWD
+          BUNDLE_STORE_PASSWD=$BUNDLE_STORE_PASSWD
+          EOF
+        env:
+          BUNDLE_KEYSTORE_BASE64: ${{ secrets.BUNDLE_KEYSTORE_BASE64 }}
+          BUNDLE_STORE_FILE: ${{ secrets.BUNDLE_STORE_FILE }}
+          BUNDLE_KEY_ALIAS: ${{ secrets.BUNDLE_KEY_ALIAS }}
+          BUNDLE_KEY_PASSWD: ${{ secrets.BUNDLE_KEY_PASSWD }}
+          BUNDLE_STORE_PASSWD: ${{ secrets.BUNDLE_STORE_PASSWD }}
+
       - name: Build release APK (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
         run: ./gradlew :app:assembleRelease --stacktrace -Porg.gradle.java.installations.paths="$JAVA_HOME_21_X64,$JAVA_HOME_25_X64"
+
+      - name: Verify release APK signature and version (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          echo "release APK: $APK ($(stat -c%s "$APK") bytes)"
+          APKSIGNER=$(ls "$ANDROID_HOME/build-tools/"*/apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          # The tag and the version must agree: the versionName in
+          # build.gradle.kts must equal the tag minus its leading
+          # 'v', and the APK must be app.backhaul at that version and
+          # code. The signed release needs an uninstall first, by
+          # design — it is a new key, so it cannot install over a
+          # debug build.
+          AAPT=$(ls "$ANDROID_HOME/build-tools/"*/aapt2 | sort -V | tail -1)
+          BADGING=$("$AAPT" dump badging "$APK" | head -1)
+          echo "$BADGING"
+          VERSION_NAME=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          VERSION_CODE=$(grep -oP 'versionCode = \K[0-9]+' app/build.gradle.kts)
+          TAG_NAME="${GITHUB_REF#refs/tags/v}"
+          [ "$VERSION_NAME" = "$TAG_NAME" ] || {
+            echo "tag $TAG_NAME != versionName $VERSION_NAME"
+            exit 1
+          }
+          echo "$BADGING" | grep -q "name='app.backhaul' versionCode='$VERSION_CODE' versionName='$VERSION_NAME'" || {
+            echo "release APK is not $VERSION_NAME / versionCode $VERSION_CODE: $BADGING"
+            exit 1
+          }
+          echo "release APK verified: signed, app.backhaul $VERSION_NAME/code $VERSION_CODE"
 
       - name: Upload release APK artifact (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
