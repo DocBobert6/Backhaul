@@ -1,7 +1,8 @@
 # Privacy Policy
 
-pyamsoft built the TetherFuseNet App as an Open Source app. This App is provided by pyamsoft
-at no cost and is intended for use as is.
+Backhaul is a fork of TetherFuseNet, maintained at
+https://github.com/DocBobert6/Backhaul. This App is provided as an Open
+Source app at no cost and is intended for use as is.
 
 ## Location Data and Use
 
@@ -12,7 +13,7 @@ is not used outside of this function and is never collected, tracked, or shared 
 
 ## Foreground Service Usage
 
-The App makes use of an Foreground Service to perform it's primary function. The foreground
+The App makes use of a Foreground Service to perform its primary function. The foreground
 service is used to launch an immediate, long-running, Wi-Fi direct network for connected
 devices. This Wi-Fi direct network is used so that connected devices can exchange networking
 data. The App does not use a Foreground Service for any other use case except to perform this
@@ -25,35 +26,33 @@ by you. Data is never shared with any party, including the developer, for any pu
 in the case where you voluntarily send the developer data for troubleshooting issues like
 application crashes or usability issues.
 
-A third-party library is used to provide an In-App Purchase feature, which is subject to the
-following third-party privacy policy:
-
-[Google Play Services](https://www.google.com/policies/privacy/)
+There is no account, no analytics, no advertising, and no in-app purchase of any kind in
+this App. No third-party service receives your data from this App.
 
 ## Links to Other Sites
 
 This App may contain links to other sites. If you click on a third-party link, you will be
-directed to that site. Note that these external sites are not operated by pyamsoft. Therefore,
-pyamsoft strongly advises you to review the Privacy Policy of these websites. pyamsoft has no
-control over and assume no responsibility for the content, privacy policies, or practices of
-any third-party sites or services.
+directed to that site. Note that these external sites are not operated by the developer of
+this App. Therefore, the developer strongly advises you to review the Privacy Policy of these
+websites. The developer has no control over and assumes no responsibility for the content,
+privacy policies, or practices of any third-party sites or services.
 
 ## Children’s Privacy
 
-This App and related Services do not address anyone under the age of 18. pyamsoft does not
+This App and related Services do not address anyone under the age of 18. The developer does not
 knowingly service any users below the age of 18.
 
 ## Changes to This Privacy Policy
 
-pyamsoft may update this Privacy Policy from time to time. Thus, you are advised to review
-this page periodically for any changes. pyamsoft will notify you of any changes by posting
+The developer may update this Privacy Policy from time to time. Thus, you are advised to review
+this page periodically for any changes. The developer will notify you of any changes by posting
 the new Privacy Policy on this page. These changes are effective immediately after they are
 posted on this page.
 
 ## Contact Us
 
 If you have any questions or suggestions about the Privacy Policy, do not hesitate to contact
-pyamsoft at pyamsoftapps@gmail.com.
+the developer by opening an issue at https://github.com/DocBobert6/Backhaul/issues.
 
 ## License
 
