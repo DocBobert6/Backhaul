@@ -101,14 +101,12 @@ slf4j-nop = { group = "org.slf4j", name = "slf4j-nop", version.ref = "slf4j" }
 leakcanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakCanary" }
 leakcanary-plumber = { group = "com.squareup.leakcanary", name = "plumber-android", version.ref = "leakCanary" }
 
-pydroid-bus = { group = "com.github.pyamsoft.pydroid", name = "bus", version.ref = "pydroid" }
-pydroid-notify = { group = "com.github.pyamsoft.pydroid", name = "notify", version.ref = "pydroid" }
-pydroid-ui = { group = "com.github.pyamsoft.pydroid", name = "ui", version.ref = "pydroid" }
-pydroid-util = { group = "com.github.pyamsoft.pydroid", name = "util", version.ref = "pydroid" }
-pydroid-billing-noop = { group = "com.github.pyamsoft.pydroid", name = "billing-noop", version.ref = "pydroid" }
-pydroid-billing-play = { group = "com.github.pyamsoft.pydroid", name = "billing-play", version.ref = "pydroid" }
-pydroid-bootstrap-noop = { group = "com.github.pyamsoft.pydroid", name = "bootstrap-noop", version.ref = "pydroid" }
-pydroid-bootstrap-play = { group = "com.github.pyamsoft.pydroid", name = "bootstrap-play", version.ref = "pydroid" }
+pydroid-bus = { group = "com.github.DocBobert6.pydroid", name = "bus", version.ref = "pydroid" }
+pydroid-notify = { group = "com.github.DocBobert6.pydroid", name = "notify", version.ref = "pydroid" }
+pydroid-ui = { group = "com.github.DocBobert6.pydroid", name = "ui", version.ref = "pydroid" }
+pydroid-util = { group = "com.github.DocBobert6.pydroid", name = "util", version.ref = "pydroid" }
+pydroid-billing-noop = { group = "com.github.DocBobert6.pydroid", name = "billing-noop", version.ref = "pydroid" }
+pydroid-bootstrap-noop = { group = "com.github.DocBobert6.pydroid", name = "bootstrap-noop", version.ref = "pydroid" }
 
 qrcode = { group = "io.github.g0dkar", name = "qrcode-kotlin-android", version.ref = "qrCode" }
 

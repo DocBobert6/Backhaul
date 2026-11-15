@@ -74,30 +74,6 @@ android {
     }
   }
 
-  // https://developer.android.com/build/build-variants
-  flavorDimensions += listOf("store")
-
-  productFlavors {
-    create("google") {
-      dimension = "store"
-
-      // https://github.com/pyamsoft/tetherfusenet/issues/307
-      dependenciesInfo {
-        includeInApk = true
-        includeInBundle = true
-      }
-    }
-
-    create("fdroid") {
-      dimension = "store"
-
-      // https://github.com/pyamsoft/tetherfusenet/issues/307
-      dependenciesInfo {
-        includeInApk = false
-        includeInBundle = false
-      }
-    }
-  }
 
   buildTypes {
     release {
@@ -176,11 +152,9 @@ dependencies {
   implementation(libs.pydroid.ui)
 
   // For PYDroid we split between Google Play builds and fully FOSS
-  add("fdroidImplementation", libs.pydroid.billing.noop)
-  add("fdroidImplementation", libs.pydroid.bootstrap.noop)
+  implementation(libs.pydroid.billing.noop)
+  implementation(libs.pydroid.bootstrap.noop)
 
-  add("googleImplementation", libs.pydroid.billing.play)
-  add("googleImplementation", libs.pydroid.bootstrap.play)
 
   implementation(project(":behavior"))
   implementation(project(":connections"))
