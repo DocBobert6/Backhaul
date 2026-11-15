@@ -47,11 +47,18 @@ jobs:
         run: |
           set -euo pipefail
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          # Licences first (guarded: yes dies on SIGPIPE once sdkmanager
+          # exits, and under pipefail that would fail the step even when
+          # sdkmanager itself succeeded -- that is what killed run 2,
+          # whose install reached 100% "Computing updates" with no
+          # package warning before exiting 1).
           yes | "$SDKMANAGER" --licenses || true
           echo "--- preinstalled platforms:"
           ls "$ANDROID_HOME/platforms/" || true
-          # Stable-channel packages (all exist in the stable repo).
-          yes | "$SDKMANAGER" "build-tools;35.0.0" "build-tools;36.0.0" "build-tools;37.0.0" "platform-tools"
+          # Stable-channel packages. stdin is /dev/null (licences are
+          # already accepted above), so no yes-pipe can fail the step;
+          # --verbose so a failure names the package.
+          "$SDKMANAGER" --verbose "build-tools;35.0.0" "build-tools;36.0.0" "build-tools;37.0.0" "platform-tools" < /dev/null
           # platforms;android-37 is a PREVIEW platform (Android 17
           # "CinnamonBun", beta) and is NOT in the stable channel repo
           # as of 2026-11-15 -- the stable repo tops out at android-36
@@ -64,7 +71,7 @@ jobs:
           if [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
             for ch in 1 2 3; do
               echo "--- trying sdkmanager channel $ch for platforms;android-37"
-              yes | "$SDKMANAGER" --channel="$ch" "platforms;android-37" || true
+              "$SDKMANAGER" --verbose --channel="$ch" "platforms;android-37" < /dev/null || true
               if [ -d "$ANDROID_HOME/platforms/android-37" ]; then
                 echo "--- platforms;android-37 installed via channel $ch"
                 break
