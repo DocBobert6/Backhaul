@@ -17,15 +17,16 @@
 package com.pyamsoft.tetherfi.main
 
 import androidx.annotation.CheckResult
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,12 +34,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import com.pyamsoft.pydroid.theme.keylines
-import com.pyamsoft.tetherfi.ui.surfaceAlpha
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 @CheckResult
@@ -56,7 +57,6 @@ fun MainNavigationBar(
   val currentPage = pagerState.currentPage
   Row(
       modifier = modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceEvenly,
       verticalAlignment = Alignment.CenterVertically,
   ) {
     for (index in allDestinations.indices) {
@@ -70,6 +70,7 @@ fun MainNavigationBar(
           }
 
       MainDestination(
+          modifier = Modifier.weight(1F),
           destination = tab,
           isSelected = isSelected,
           onSelected = { onDestinationChanged(tab) },
@@ -78,6 +79,10 @@ fun MainNavigationBar(
   }
 }
 
+/**
+ * One Carrier tab: plain uppercase text. The selected tab is blueprint
+ * blue and bold, with a 2dp blue line above it; the rest are muted.
+ */
 @Composable
 private fun MainDestination(
     modifier: Modifier = Modifier,
@@ -85,39 +90,34 @@ private fun MainDestination(
     isSelected: Boolean,
     onSelected: () -> Unit,
 ) {
-  val destinationName = stringResource(destination.displayNameRes)
-  val tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = surfaceAlpha(isSelected))
+  val destinationName = stringResource(destination.displayNameRes).uppercase()
+  val colors = MaterialTheme.colorScheme
+  val textColor = if (isSelected) colors.primary else colors.onSurfaceVariant
 
-  Row(
-      modifier =
-          modifier
-              .padding(
-                  vertical = MaterialTheme.keylines.baseline,
-                  horizontal = MaterialTheme.keylines.typography,
-              )
-              .clip(MaterialTheme.shapes.small)
-              .clickable { onSelected() }
-              .padding(all = MaterialTheme.keylines.typography),
-      horizontalArrangement = Arrangement.Start,
-      verticalAlignment = Alignment.CenterVertically,
+  Column(
+      modifier = modifier.clickable { onSelected() },
+      horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    Icon(
-        contentDescription = destinationName,
-        painter = painterResource(destination.icon),
-        tint = tint,
+    Box(
+        modifier =
+            Modifier.fillMaxWidth()
+                .height(2.dp)
+                .background(
+                    if (isSelected) colors.primary else Color.Transparent,
+                ),
     )
-    AnimatedVisibility(
-        modifier = Modifier.padding(start = MaterialTheme.keylines.typography),
-        visible = isSelected,
-    ) {
-      Text(
-          text = destinationName,
-          style = MaterialTheme.typography.labelSmall,
-          color = tint,
-          maxLines = 1,
-          softWrap = false,
-      )
-    }
+    Text(
+        modifier = Modifier.padding(vertical = 12.dp),
+        text = destinationName,
+        style =
+            MaterialTheme.typography.labelMedium.copy(
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                letterSpacing = 2.sp,
+            ),
+        color = textColor,
+        maxLines = 1,
+        softWrap = false,
+    )
   }
 }
 

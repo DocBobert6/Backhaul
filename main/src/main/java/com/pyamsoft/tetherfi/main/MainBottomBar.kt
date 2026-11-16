@@ -20,16 +20,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.pyamsoft.pydroid.theme.keylines
+import androidx.compose.ui.unit.dp
 
+/**
+ * The Carrier tab strip: a thin rule, then text tabs — no filled pill.
+ */
 @Composable
 fun MainBottomBar(
     modifier: Modifier = Modifier,
@@ -38,23 +40,21 @@ fun MainBottomBar(
     onDestinationChanged: (MainView) -> Unit,
 ) {
   Column(
-      modifier = modifier.padding(all = MaterialTheme.keylines.content),
+      modifier = modifier,
   ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        color = MaterialTheme.colorScheme.primary,
-        shape = MaterialTheme.shapes.large,
-    ) {
-      MainNavigationBar(
-          pagerState = pagerState,
-          allDestinations = allDestinations,
-          onDestinationChanged = onDestinationChanged,
-      )
-    }
+    HorizontalDivider(
+        thickness = 1.dp,
+        color = MaterialTheme.colorScheme.outlineVariant,
+    )
+
+    MainNavigationBar(
+        pagerState = pagerState,
+        allDestinations = allDestinations,
+        onDestinationChanged = onDestinationChanged,
+    )
 
     Spacer(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.content).navigationBarsPadding(),
+        modifier = Modifier.navigationBarsPadding(),
     )
   }
 }
