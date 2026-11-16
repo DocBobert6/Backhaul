@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -92,7 +93,7 @@ internal fun NetworkDiagram(
       when {
         isSharing -> stringResource(R.string.diagram_breaker_sharing)
         isOff -> stringResource(R.string.diagram_breaker_off)
-        isError -> stringResource(R.string.status_error)
+        isError -> stringResource(R.string.diagram_breaker_error)
         hotspotStatus is RunningStatus.Starting -> stringResource(R.string.status_starting)
         else -> stringResource(R.string.status_stopping)
       }
@@ -470,7 +471,10 @@ private fun DrawScope.drawBreaker(
       center = Offset(center.x + 13.dp.toPx(), midY),
   )
 
-  // Label above the breaker
+  // Label above the breaker. The label is centred on the breaker, so it
+  // may never be wider than the wire span between the phone node and the
+  // device nodes — anything longer is cut off with an ellipsis instead
+  // of spilling across the wire and over the phone node.
   val labelStyle =
       TextStyle(
           fontFamily = FontFamily.Monospace,
@@ -479,7 +483,18 @@ private fun DrawScope.drawBreaker(
           letterSpacing = 1.sp,
           color = if (isError) errorColor else inkColor,
       )
-  val measured = textMeasurer.measure(text = label, style = labelStyle)
+  val maxLabelWidth =
+      (layout.deviceRects.first().left - layout.phoneRect.right - 16.dp.toPx())
+          .toInt()
+          .coerceAtLeast(0)
+  val measured =
+      textMeasurer.measure(
+          text = label,
+          style = labelStyle,
+          overflow = TextOverflow.Ellipsis,
+          maxLines = 1,
+          constraints = Constraints(maxWidth = maxLabelWidth),
+      )
   drawText(
       textLayoutResult = measured,
       topLeft =

@@ -16,7 +16,6 @@
   ~ limitations under the License.
   -->
 <resources>
-  <string name="status_error">發生了一個未預期的錯誤。</string>
   <string name="status_not_running">未在運行</string>
   <string name="status_running">正在運行</string>
   <string name="status_starting">正在啟動</string>

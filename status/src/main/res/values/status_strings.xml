@@ -15,7 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-  <string name="status_error">An unexpected error occurred.</string>
   <string name="status_not_running">Not Running</string>
   <string name="status_running">Running</string>
   <string name="status_starting">Starting</string>
