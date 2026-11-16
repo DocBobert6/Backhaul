@@ -17,38 +17,58 @@
 package com.pyamsoft.tetherfi.ui.trouble
 
 import androidx.annotation.CheckResult
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
-import com.pyamsoft.tetherfi.server.broadcast.rndis.RNDISInitializeException
+import com.pyamsoft.tetherfi.server.status.ErrorKind
 import com.pyamsoft.tetherfi.ui.R
+import com.pyamsoft.tetherfi.ui.plainErrorSentence
 import org.jetbrains.annotations.TestOnly
 
+/**
+ * The plain-language error sheet for a failed start.
+ *
+ * One title naming what failed, one plain sentence naming the problem
+ * and the fix, then a short checklist in plain words. The throwable is
+ * used only to pick the sentence — its message and its stack trace are
+ * never shown.
+ */
 @Composable
 @CheckResult
-private fun resolveErrorType(
+private fun resolveTitle(
     isBroadcastError: Boolean,
     isProxyError: Boolean,
 ): String {
   return if (isBroadcastError && isProxyError) {
-    stringResource(R.string.trouble_err_type_both)
+    stringResource(R.string.trouble_title_both)
   } else if (isProxyError) {
-    stringResource(R.string.trouble_err_type_proxy)
+    stringResource(R.string.trouble_title_proxy)
   } else {
-    stringResource(R.string.trouble_err_type_broadcast)
+    stringResource(R.string.trouble_title_broadcast)
+  }
+}
+
+@Composable
+@CheckResult
+private fun resolveKind(
+    isBroadcastError: Boolean,
+    isProxyError: Boolean,
+): ErrorKind {
+  return if (isBroadcastError && isProxyError) {
+    ErrorKind.GENERIC
+  } else if (isProxyError) {
+    ErrorKind.PROXY
+  } else {
+    ErrorKind.BROADCAST
   }
 }
 
@@ -61,26 +81,23 @@ fun TroubleshootUnableToStart(
     isProxyError: Boolean,
     throwable: Throwable?,
 ) {
-  val (showStackTrace, setShowStackTrace) = rememberSaveable { mutableStateOf(false) }
-
   val showTroubleshooting =
       remember(isBroadcastError, isProxyError) { isBroadcastError || isProxyError }
 
-  val errType = resolveErrorType(isBroadcastError, isProxyError)
+  val title = resolveTitle(isBroadcastError, isProxyError)
+  val sentence = plainErrorSentence(throwable, resolveKind(isBroadcastError, isProxyError))
 
-  // TODO(Peter): Lazy column
-  // TODO(Peter): Checkbox to show stacktrace
   Column(
       modifier = modifier.padding(horizontal = MaterialTheme.keylines.content),
   ) {
     Text(
-        text = stringResource(R.string.trouble_title, appName),
+        text = title,
         color = MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.titleLarge,
     )
     Text(
         modifier = Modifier.padding(bottom = MaterialTheme.keylines.content),
-        text = stringResource(R.string.trouble_description, errType),
+        text = sentence,
         fontWeight = FontWeight.W700,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.error,
@@ -147,47 +164,6 @@ fun TroubleshootUnableToStart(
           text = stringResource(R.string.trouble_proxy_port),
           style = MaterialTheme.typography.bodyLarge,
       )
-    }
-
-    throwable?.also { err ->
-      val title =
-          remember(err) {
-            // Special message handling for RNDIS initialization errors
-            if (err is RNDISInitializeException) {
-              return@remember err.candidateMessage
-            }
-
-            return@remember err.message.orEmpty().ifBlank { "Unexpected Hotspot Error" }
-          }
-
-      Column(
-          modifier =
-              Modifier.padding(vertical = MaterialTheme.keylines.content).clickable {
-                setShowStackTrace(!showStackTrace)
-              },
-      ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-
-        Text(
-            text = stringResource(R.string.trouble_click_expand),
-            style = MaterialTheme.typography.bodySmall,
-        )
-      }
-
-      if (showStackTrace) {
-        val trace = remember(err) { err.stackTraceToString() }
-        Text(
-            modifier = Modifier.padding(vertical = MaterialTheme.keylines.content),
-            text = trace,
-            style =
-                MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = FontFamily.Monospace,
-                ),
-        )
-      }
     }
   }
 }

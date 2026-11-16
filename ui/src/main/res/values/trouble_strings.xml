@@ -15,16 +15,10 @@
   ~ limitations under the License.
   -->
 <resources>
-  <string name="trouble_title">%1$s Hotspot failed to start.</string>
-  <string
-    name="trouble_description"
-  >This is NOT an error with the app, this is an error %1$s.</string>
+  <string name="trouble_title_broadcast">Broadcast failed to start.</string>
+  <string name="trouble_title_proxy">Proxy failed to start.</string>
+  <string name="trouble_title_both">Sharing failed to start.</string>
 
-  <string
-    name="trouble_err_type_both"
-  >with your device and configuration</string>
-  <string name="trouble_err_type_proxy">with your configuration</string>
-  <string name="trouble_err_type_broadcast">from your device</string>
   <string
     name="trouble_double_check"
   >Please check these issues and try again:</string>
@@ -55,7 +49,4 @@
   <string
     name="trouble_broadcast_rndis"
   >• USB Tethering must be turned ON</string>
-
-  <!-- TODO(Peter): Need zh-rTW translation -->
-  <string name="trouble_click_expand">Click to expand Error trace</string>
 </resources>
