@@ -52,6 +52,7 @@ import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
 import com.pyamsoft.tetherfi.server.clients.TetherClient
 import com.pyamsoft.tetherfi.server.clients.TransferAmount
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
+import com.pyamsoft.tetherfi.server.status.ErrorKind
 import com.pyamsoft.tetherfi.server.status.RunningStatus
 import com.pyamsoft.tetherfi.server.status.overallStatus
 import com.pyamsoft.tetherfi.status.diagram.ClientNodeDialog
@@ -67,6 +68,7 @@ import com.pyamsoft.tetherfi.ui.LANDSCAPE_MAX_WIDTH
 import com.pyamsoft.tetherfi.ui.LoadingSpinner
 import com.pyamsoft.tetherfi.ui.ServerPortTypes
 import com.pyamsoft.tetherfi.ui.ServerViewState
+import com.pyamsoft.tetherfi.ui.plainErrorSentence
 import com.pyamsoft.tetherfi.ui.rememberPortNumber
 import com.pyamsoft.tetherfi.ui.rememberServerHostname
 import com.pyamsoft.tetherfi.ui.rememberServerSSID
@@ -381,10 +383,7 @@ private fun DiagramContent(
         modifier =
             Modifier.padding(top = MaterialTheme.keylines.baseline)
                 .clickable { onShowBroadcastError() },
-        text =
-            stringResource(
-                R.string.diagram_error_broadcast,
-            ) + ": " + (wiDiStatus.throwable.message ?: stringResource(R.string.status_error)),
+        text = plainErrorSentence(wiDiStatus.throwable, ErrorKind.BROADCAST),
         style =
             MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = FontFamily.Monospace,
@@ -398,10 +397,7 @@ private fun DiagramContent(
         modifier =
             Modifier.padding(top = MaterialTheme.keylines.baseline)
                 .clickable { onShowProxyError() },
-        text =
-            stringResource(
-                R.string.diagram_error_proxy,
-            ) + ": " + (proxyStatus.throwable.message ?: stringResource(R.string.status_error)),
+        text = plainErrorSentence(proxyStatus.throwable, ErrorKind.PROXY),
         style =
             MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = FontFamily.Monospace,

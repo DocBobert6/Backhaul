@@ -29,26 +29,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.ui.app.rememberDialogProperties
 import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
-import com.pyamsoft.tetherfi.server.broadcast.rndis.RNDISInitializeException
+import com.pyamsoft.tetherfi.server.status.ErrorKind
 import com.pyamsoft.tetherfi.ui.IconButtonContent
 import com.pyamsoft.tetherfi.ui.R
 import com.pyamsoft.tetherfi.ui.icons.IconPainters
+import com.pyamsoft.tetherfi.ui.plainErrorSentence
 
 private enum class ServerErrorDialogContentTypes {
   TITLE,
   DESCRIPTION,
-  EXTRA,
-  TRACE,
 }
 
 @Composable
@@ -76,8 +73,13 @@ fun ServerErrorDialog(
     title: String,
     description: String? = null,
     error: Throwable,
+    kind: ErrorKind = ErrorKind.GENERIC,
     onDismiss: () -> Unit,
 ) {
+  // One plain sentence naming the problem and the fix — never the
+  // exception's text or a stack trace.
+  val plainDescription = description ?: plainErrorSentence(error, kind)
+
   Dialog(properties = rememberDialogProperties(), onDismissRequest = onDismiss) {
     Column(
         modifier =
@@ -94,7 +96,6 @@ fun ServerErrorDialog(
           },
       )
 
-      // TODO(Peter): Checkbox to show stacktrace
       Card(
           shape =
               MaterialTheme.shapes.large.copy(topStart = ZeroCornerSize, topEnd = ZeroCornerSize),
@@ -110,34 +111,11 @@ fun ServerErrorDialog(
             )
           }
 
-          if (description != null) {
-            item(contentType = ServerErrorDialogContentTypes.DESCRIPTION) {
-              Text(
-                  modifier = Modifier.padding(MaterialTheme.keylines.content),
-                  text = description,
-                  style = MaterialTheme.typography.bodyMedium,
-              )
-            }
-          }
-
-          if (error is RNDISInitializeException) {
-            item(contentType = ServerErrorDialogContentTypes.EXTRA) {
-              val trace = remember(error) { error.candidateMessage }
-              Text(
-                  modifier = Modifier.padding(MaterialTheme.keylines.content),
-                  text = trace,
-                  style =
-                      MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-              )
-            }
-          }
-
-          item(contentType = ServerErrorDialogContentTypes.TRACE) {
-            val trace = remember(error) { error.stackTraceToString() }
+          item(contentType = ServerErrorDialogContentTypes.DESCRIPTION) {
             Text(
                 modifier = Modifier.padding(MaterialTheme.keylines.content),
-                text = trace,
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                text = plainDescription,
+                style = MaterialTheme.typography.bodyMedium,
             )
           }
         }

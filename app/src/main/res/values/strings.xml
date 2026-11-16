@@ -16,4 +16,9 @@
 <resources>
   <string name="app_name">Backhaul</string>
   <string name="toggle_hotspot_shortcut">Toggle Backhaul Hotspot</string>
+
+  <!-- Plain-language tile error sentences — never exception text. -->
+  <string name="tile_error_password">The hotspot password is too short. Generate a new password and try again.</string>
+  <string name="tile_error_port_in_use">The proxy port is already in use by another app. Change the port or close the other app, then try again.</string>
+  <string name="tile_error_generic">Sharing failed to start. Try again, and if it keeps failing, restart Wi-Fi.</string>
 </resources>

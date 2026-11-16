@@ -82,11 +82,8 @@ internal constructor(
           .setPriority(NotificationCompat.PRIORITY_DEFAULT)
           .setCategory(NotificationCompat.CATEGORY_ERROR)
           .setContentTitle("$appName Error")
-          .setContentText(
-              notification.throwable.message.orEmpty().ifBlank {
-                "An unexpected error occurred. Please restart the $appName Hotspot."
-              },
-          )
+          // One plain sentence — never the exception's text.
+          .setContentText("An unexpected error occurred. Please restart the $appName Hotspot.")
 
   override fun canShow(notification: NotifyData): Boolean {
     return notification is ErrorNotificationData

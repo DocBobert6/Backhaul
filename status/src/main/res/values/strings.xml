@@ -46,7 +46,5 @@
   <string name="diagram_proxy_both">HTTP + SOCKS</string>
   <string name="diagram_show_qr">Show QR code</string>
   <string name="diagram_refresh">Refresh</string>
-  <string name="diagram_error_broadcast">Broadcast failed</string>
-  <string name="diagram_error_proxy">Proxy failed</string>
   <string name="diagram_tap_node">Tap a device to manage it</string>
 </resources>

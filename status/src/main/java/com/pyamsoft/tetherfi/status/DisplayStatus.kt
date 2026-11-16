@@ -29,8 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.tetherfi.server.status.ErrorKind
 import com.pyamsoft.tetherfi.server.status.RunningStatus
 import com.pyamsoft.tetherfi.status.sections.StatusItem
+import com.pyamsoft.tetherfi.ui.plainErrorSentence
 
 @Composable
 internal fun DisplayStatus(
@@ -38,11 +40,12 @@ internal fun DisplayStatus(
     title: String,
     status: RunningStatus,
     size: StatusSize,
+    errorKind: ErrorKind = ErrorKind.GENERIC,
     onClickShowError: (() -> Unit)? = null,
 ) {
   val text =
       when (status) {
-        is RunningStatus.Error -> status.throwable.message ?: stringResource(R.string.status_error)
+        is RunningStatus.Error -> plainErrorSentence(status.throwable, errorKind)
         is RunningStatus.NotRunning -> stringResource(R.string.status_not_running)
         is RunningStatus.Running -> stringResource(R.string.status_running)
         is RunningStatus.Starting -> stringResource(R.string.status_starting)

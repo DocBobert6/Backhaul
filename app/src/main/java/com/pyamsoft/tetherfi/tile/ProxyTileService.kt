@@ -32,6 +32,9 @@ import com.pyamsoft.pydroid.util.AppDispatchers
 import com.pyamsoft.tetherfi.ObjectGraph
 import com.pyamsoft.tetherfi.R
 import com.pyamsoft.tetherfi.core.Timber
+import com.pyamsoft.tetherfi.server.status.ErrorKind
+import com.pyamsoft.tetherfi.server.status.ErrorSentence
+import com.pyamsoft.tetherfi.server.status.ErrorSentences
 import com.pyamsoft.tetherfi.server.status.RunningStatus
 import com.pyamsoft.tetherfi.service.tile.TileHandler
 import javax.inject.Inject
@@ -91,7 +94,14 @@ internal class ProxyTileService internal constructor() : TileService() {
       is RunningStatus.Error -> {
         state = Tile.STATE_INACTIVE
         title = "ERROR"
-        description = status.throwable.message ?: "An unexpected error occurred"
+        // One plain sentence naming the problem and the fix — never
+        // the exception's text.
+        description =
+            when (ErrorSentences.classify(status.throwable, ErrorKind.GENERIC)) {
+              ErrorSentence.PASSWORD -> getString(R.string.tile_error_password)
+              ErrorSentence.PORT_IN_USE -> getString(R.string.tile_error_port_in_use)
+              else -> getString(R.string.tile_error_generic)
+            }
       }
 
       is RunningStatus.NotRunning -> {

@@ -40,6 +40,7 @@ import com.pyamsoft.tetherfi.main.blockers.WifiBlocker
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastNetworkStatus
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
+import com.pyamsoft.tetherfi.server.status.ErrorKind
 import com.pyamsoft.tetherfi.server.status.RunningStatus
 import com.pyamsoft.tetherfi.service.prereq.HotspotStartBlocker
 import com.pyamsoft.tetherfi.ui.R
@@ -168,6 +169,7 @@ fun MainDialogs(
           modifier = dialogModifier,
           title = "Broadcast Initialization Error",
           error = err.throwable,
+          kind = ErrorKind.BROADCAST,
           onDismiss = onHideBroadcastError,
       )
     }
@@ -179,6 +181,7 @@ fun MainDialogs(
           modifier = dialogModifier,
           title = "Proxy Initialization Error",
           error = err.throwable,
+          kind = ErrorKind.PROXY,
           onDismiss = onHideProxyError,
       )
     }
