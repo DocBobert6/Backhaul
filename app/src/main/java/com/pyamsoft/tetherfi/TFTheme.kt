@@ -41,6 +41,42 @@ import com.pyamsoft.pydroid.ui.uri.LocalExternalUriHandler
 import com.pyamsoft.pydroid.ui.uri.rememberExternalUriHandler
 import com.pyamsoft.pydroid.util.AppDispatchers
 
+/**
+ * Carrier — the Backhaul look. Blueprint schematic + live waveform.
+ * Six named tokens per mode, plain names. Dark is the same diagram
+ * inverted. Green is the one accent (on / flowing / connected); red
+ * is failures only, never decoration.
+ */
+object CarrierColors {
+  object Light {
+    /** Cool blueprint paper — the app background. */
+    val paper = Color(0xFFE8EDF2)
+    /** Text and line work. */
+    val ink = Color(0xFF182633)
+    /** The drawing — nodes, lines, headings. */
+    val blue = Color(0xFF2E5D8A)
+    /** The one accent: on, flowing, connected. */
+    val green = Color(0xFF1E7D46)
+    /** Failures only. */
+    val red = Color(0xFFBA1A1A)
+    /** Secondary labels and readouts. */
+    val muted = Color(0xFF7C93A6)
+    /** Cards and sheets, a step lighter than paper. */
+    val surface = Color(0xFFF5F8FA)
+  }
+
+  object Dark {
+    /** Deep blueprint — the same diagram inverted. */
+    val paper = Color(0xFF0E1A24)
+    val ink = Color(0xFFDCE6EE)
+    val blue = Color(0xFF6FA3D0)
+    val green = Color(0xFF4CC38A)
+    val red = Color(0xFFFF8A80)
+    val muted = Color(0xFF6B8296)
+    val surface = Color(0xFF16242F)
+  }
+}
+
 @Composable
 @ChecksSdkIntAtLeast(Build.VERSION_CODES.S)
 private fun rememberCanUseDynamic(isMaterialYou: Boolean): Boolean {
@@ -66,34 +102,42 @@ private fun themeColors(
       if (canUseDynamic) {
         dynamicDarkColorScheme(activity)
       } else {
-        val primary = Color(0xFFC1D02C)
-        val onPrimary = Color(0xFF2F3300)
-        val primaryContainer = Color(0xFF444B00)
-        val onPrimaryContainer = Color(0xFFDDED49)
-        val secondary = Color(0xFFC7C9A6)
-        val onSecondary = Color(0xFF30321A)
-        val secondaryContainer = Color(0xFF46492E)
-        val onSecondaryContainer = Color(0xFFE4E5C1)
-        val tertiary = Color(0xFFA2D0C1)
-        val onTertiary = Color(0xFF07372D)
-        val tertiaryContainer = Color(0xFF234E43)
-        val onTertiaryContainer = Color(0xFFBEECDC)
-        val error = Color(0xFFFFB4AB)
+        // Carrier (dark): the same diagram inverted. Container tints
+        // are the token darkened toward paper.
+        val paper = CarrierColors.Dark.paper
+        val ink = CarrierColors.Dark.ink
+        val blue = CarrierColors.Dark.blue
+        val green = CarrierColors.Dark.green
+        val red = CarrierColors.Dark.red
+        val muted = CarrierColors.Dark.muted
+        val primary = blue
+        val onPrimary = paper
+        val primaryContainer = Color(0xFF23486B)
+        val onPrimaryContainer = ink
+        val secondary = muted
+        val onSecondary = paper
+        val secondaryContainer = Color(0xFF2E4256)
+        val onSecondaryContainer = ink
+        val tertiary = green
+        val onTertiary = paper
+        val tertiaryContainer = Color(0xFF1B4D33)
+        val onTertiaryContainer = ink
+        val error = red
         val errorContainer = Color(0xFF93000A)
         val onError = Color(0xFF690005)
         val onErrorContainer = Color(0xFFFFDAD6)
-        val background = Color(0xFF1C1C17)
-        val onBackground = Color(0xFFE5E2DA)
-        val surface = Color(0xFF1C1C17)
-        val onSurface = Color(0xFFE5E2DA)
-        val surfaceVariant = Color(0xFF47483B)
-        val onSurfaceVariant = Color(0xFFC8C7B7)
-        val outline = Color(0xFF929282)
-        val inverseOnSurface = Color(0xFF1C1C17)
-        val inverseSurface = Color(0xFFE5E2DA)
-        val inversePrimary = Color(0xFF5B6300)
-        val surfaceTint = Color(0xFFC1D02C)
-        val outlineVariant = Color(0xFF47483B)
+        val background = paper
+        val onBackground = ink
+        val surface = CarrierColors.Dark.surface
+        val onSurface = ink
+        val surfaceVariant = Color(0xFF24384A)
+        val onSurfaceVariant = Color(0xFFA7BCCB)
+        val outline = muted
+        val inverseOnSurface = paper
+        val inverseSurface = ink
+        val inversePrimary = Color(0xFF2E5D8A)
+        val surfaceTint = blue
+        val outlineVariant = Color(0xFF2A3D4D)
         val scrim = Color(0xFF000000)
 
         darkColorScheme(
@@ -132,34 +176,43 @@ private fun themeColors(
       if (canUseDynamic) {
         dynamicLightColorScheme(activity)
       } else {
-        val primary = Color(0xFF5B6300)
+        // Carrier (light): cool blueprint paper, ink line work, blue
+        // draws, green is the one accent, red is failures only.
+        // Container tints are the token at 15% over paper.
+        val paper = CarrierColors.Light.paper
+        val ink = CarrierColors.Light.ink
+        val blue = CarrierColors.Light.blue
+        val green = CarrierColors.Light.green
+        val red = CarrierColors.Light.red
+        val muted = CarrierColors.Light.muted
+        val primary = blue
         val onPrimary = Color(0xFFFFFFFF)
-        val primaryContainer = Color(0xFFDDED49)
-        val onPrimaryContainer = Color(0xFF1A1D00)
-        val secondary = Color(0xFF5E6044)
+        val primaryContainer = Color(0xFFCCD7E2)
+        val onPrimaryContainer = ink
+        val secondary = muted
         val onSecondary = Color(0xFFFFFFFF)
-        val secondaryContainer = Color(0xFFE4E5C1)
-        val onSecondaryContainer = Color(0xFF1B1D07)
-        val tertiary = Color(0xFF3C665A)
+        val secondaryContainer = Color(0xFFD8DFE7)
+        val onSecondaryContainer = ink
+        val tertiary = green
         val onTertiary = Color(0xFFFFFFFF)
-        val tertiaryContainer = Color(0xFFBEECDC)
-        val onTertiaryContainer = Color(0xFF002019)
-        val error = Color(0xFFBA1A1A)
+        val tertiaryContainer = Color(0xFFCADCD8)
+        val onTertiaryContainer = ink
+        val error = red
         val errorContainer = Color(0xFFFFDAD6)
         val onError = Color(0xFFFFFFFF)
         val onErrorContainer = Color(0xFF410002)
-        val background = Color(0xFFFEFFFE)
-        val onBackground = Color(0xFF1C1C17)
-        val surface = Color(0xFFFEFFD8)
-        val onSurface = Color(0xFF1C1C17)
-        val surfaceVariant = Color(0xFFE5E3D2)
-        val onSurfaceVariant = Color(0xFF47483B)
-        val outline = Color(0xFF787869)
-        val inverseOnSurface = Color(0xFFF3F1E8)
-        val inverseSurface = Color(0xFF31312B)
-        val inversePrimary = Color(0xFFC1D02C)
-        val surfaceTint = Color(0xFF5B6300)
-        val outlineVariant = Color(0xFFC8C7B7)
+        val background = paper
+        val onBackground = ink
+        val surface = CarrierColors.Light.surface
+        val onSurface = ink
+        val surfaceVariant = Color(0xFFD9E2EA)
+        val onSurfaceVariant = Color(0xFF45566A)
+        val outline = muted
+        val inverseOnSurface = paper
+        val inverseSurface = ink
+        val inversePrimary = Color(0xFF8FB8DE)
+        val surfaceTint = blue
+        val outlineVariant = Color(0xFFC3D0DB)
         val scrim = Color(0xFF000000)
 
         lightColorScheme(

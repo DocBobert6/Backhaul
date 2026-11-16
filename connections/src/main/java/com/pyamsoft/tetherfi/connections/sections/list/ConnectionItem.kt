@@ -41,6 +41,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.PopupProperties
 import com.pyamsoft.pydroid.core.LintIgnoreTooManyFunctions
@@ -258,13 +259,22 @@ private fun Name(
     val name = remember(nickName, key) { nickName.ifBlank { key } }
     Text(
         text = name,
-        style = MaterialTheme.typography.titleLarge,
+        style =
+            MaterialTheme.typography.titleLarge.copy(
+                // The IP address is a machine readout: monospace. A
+                // nickname is a person's label: leave it in sans.
+                fontFamily =
+                    if (nickName.isBlank()) FontFamily.Monospace else FontFamily.Default,
+            ),
     )
 
     if (nickName.isNotBlank()) {
       Text(
           text = key,
-          style = MaterialTheme.typography.bodySmall,
+          style =
+              MaterialTheme.typography.bodySmall.copy(
+                  fontFamily = FontFamily.Monospace,
+              ),
           color =
               MaterialTheme.colorScheme.onSurfaceVariant.copy(
                   alpha = TypographyDefaults.ALPHA_DISABLED,
