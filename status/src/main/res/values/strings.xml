@@ -39,6 +39,7 @@
   <string name="diagram_sharing_off">SHARING OFF — tap the breaker to start</string>
   <string name="diagram_breaker_sharing">SHARING</string>
   <string name="diagram_breaker_off">OFF</string>
+  <string name="diagram_no_devices">No devices connected</string>
   <string name="diagram_this_device">this device</string>
   <string name="diagram_phone">PHONE</string>
   <string name="diagram_shared_session">shared this session</string>

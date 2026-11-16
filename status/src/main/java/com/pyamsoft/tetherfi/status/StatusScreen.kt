@@ -269,6 +269,13 @@ fun StatusScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+          } else {
+            Text(
+                modifier = Modifier.padding(top = MaterialTheme.keylines.baseline),
+                text = stringResource(R.string.diagram_no_devices),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
           }
         }
       }
