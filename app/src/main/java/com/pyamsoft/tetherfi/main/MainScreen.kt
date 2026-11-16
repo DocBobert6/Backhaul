@@ -51,12 +51,14 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyamsoft.pydroid.core.LintIgnoreTooManyFunctions
 import com.pyamsoft.pydroid.ui.util.rememberAsStateList
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastNetworkStatus
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
 import com.pyamsoft.tetherfi.server.status.RunningStatus
+import com.pyamsoft.tetherfi.server.status.overallStatus
 import com.pyamsoft.tetherfi.service.prereq.HotspotStartBlocker
 import com.pyamsoft.tetherfi.ui.ServerPortTypes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,9 +131,12 @@ fun MainScreen(
       modifier = modifier.fillMaxSize(),
       snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
       topBar = {
+        val wiDiStatus by state.wiDiStatus.collectAsStateWithLifecycle()
+        val proxyStatus by state.proxyStatus.collectAsStateWithLifecycle()
         MainTopBar(
             modifier = Modifier.fillMaxWidth(),
             appName = appName,
+            overallStatus = overallStatus(wiDiStatus, proxyStatus),
         )
       },
   ) { pv ->
