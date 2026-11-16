@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pyamsoft.tetherfi.behavior.BehaviorEntry
-import com.pyamsoft.tetherfi.connections.ConnectionEntry
 import com.pyamsoft.tetherfi.info.InfoEntry
 import com.pyamsoft.tetherfi.server.status.RunningStatus
 import com.pyamsoft.tetherfi.settings.SettingsEntry
@@ -68,7 +67,6 @@ fun MainContent(
   val statusLazyListState = rememberLazyListState()
   val behaviorLazyListState = rememberLazyListState()
   val infoLazyListState = rememberLazyListState()
-  val connectionLazyListState = rememberLazyListState()
   val settingsLazyListState = rememberLazyListState()
 
   HorizontalPager(
@@ -124,14 +122,6 @@ fun MainContent(
             onHttpEnabledChanged = onHttpEnabledChanged,
             onSocksEnabledChanged = onSocksEnabledChanged,
             onPortChanged = onPortChanged,
-        )
-      }
-      MainView.CONNECTIONS -> {
-        ConnectionEntry(
-            modifier = Modifier.fillMaxSize(),
-            appName = appName,
-            lazyListState = connectionLazyListState,
-            serverViewState = state,
         )
       }
       MainView.SETTINGS -> {

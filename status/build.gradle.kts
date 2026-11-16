@@ -66,6 +66,9 @@ dependencies {
   implementation(project(":service"))
   implementation(project(":tile"))
   implementation(project(":ui"))
+  // Phase 3: the Clients tab folds into the status screen, so the status
+  // screen hosts the connection item and its manage dialogs directly.
+  implementation(project(":connections"))
 
   testImplementation(libs.kotlin.test)
   testImplementation(libs.kotlinx.coroutines.test)

@@ -22,9 +22,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.pyamsoft.pydroid.arch.SaveStateDisposableEffect
 import com.pyamsoft.pydroid.ui.inject.rememberComposableInjector
 import com.pyamsoft.pydroid.ui.util.rememberNotNull
+import com.pyamsoft.tetherfi.connections.ConnectionInjector
+import com.pyamsoft.tetherfi.connections.ConnectionViewManagement
+import com.pyamsoft.tetherfi.connections.ConnectionViewModel
 import com.pyamsoft.tetherfi.server.status.RunningStatus
 import com.pyamsoft.tetherfi.ui.ServerPortTypes
 import com.pyamsoft.tetherfi.ui.ServerViewState
@@ -41,6 +46,16 @@ private fun MountHooks(
   ) {
     viewModel.bind(scope = this)
   }
+}
+
+/** On mount hooks for the connections viewmodel, folded in from the old Clients tab */
+@Composable
+private fun MountHooks(
+    viewModel: ConnectionViewModel,
+) {
+  SaveStateDisposableEffect(viewModel)
+
+  LaunchedEffect(viewModel) { viewModel.bind(scope = this) }
 }
 
 @Composable
@@ -77,6 +92,16 @@ fun StatusEntry(
   val component = rememberComposableInjector { StatusInjector() }
   val viewModel = rememberNotNull(component.viewModel)
 
+  // The old Clients tab now lives on the diagram, so its viewmodel is
+  // bound here too. Same mount hooks, same lifecycle.
+  val connectionComponent = rememberComposableInjector { ConnectionInjector() }
+  val connectionViewModel = rememberNotNull(connectionComponent.viewModel)
+
+  // Use the LifecycleOwner.CoroutineScope (Activity usually)
+  // so that the scope does not die because of navigation events
+  val owner = LocalLifecycleOwner.current
+  val lifecycleScope = owner.lifecycleScope
+
   val handleToggleProxy by rememberUpdatedState(onToggleProxy)
   val handleOpenNetworkError by rememberUpdatedState(onOpenNetworkError)
   val handleOpenHotspotError by rememberUpdatedState(onOpenHotspotError)
@@ -86,6 +111,10 @@ fun StatusEntry(
   // Hooks that run on mount
   MountHooks(
       viewModel = viewModel,
+  )
+
+  MountHooks(
+      viewModel = connectionViewModel,
   )
 
   StatusScreen(
@@ -118,5 +147,43 @@ fun StatusEntry(
       onShowBroadcastError = { handleOpenBroadcastError() },
       onSelectBroadcastType = { viewModel.handleUpdateBroadcastType(it) },
       onSelectPreferredNetwork = { viewModel.handleUpdatePreferredNetwork(it) },
+      connectionState = connectionViewModel,
+      onToggleBlock = { connectionViewModel.handleToggleBlock(it) },
+      onOpenManageNickName = {
+        connectionViewModel.handleOpenManage(it, ConnectionViewManagement.NICK_NAME)
+      },
+      onCloseManageNickName = {
+        connectionViewModel.handleCloseManage(ConnectionViewManagement.NICK_NAME)
+      },
+      onUpdateNickName = {
+        connectionViewModel.handleUpdateNickName(
+            scope = lifecycleScope,
+            nickName = it,
+        )
+      },
+      onOpenManageTransferLimit = {
+        connectionViewModel.handleOpenManage(it, ConnectionViewManagement.TRANSFER_LIMIT)
+      },
+      onCloseManageTransferLimit = {
+        connectionViewModel.handleCloseManage(ConnectionViewManagement.TRANSFER_LIMIT)
+      },
+      onUpdateTransferLimit = {
+        connectionViewModel.handleUpdateTransferLimit(
+            scope = lifecycleScope,
+            limit = it,
+        )
+      },
+      onOpenManageBandwidthLimit = {
+        connectionViewModel.handleOpenManage(it, ConnectionViewManagement.BANDWIDTH_LIMIT)
+      },
+      onCloseManageBandwidthLimit = {
+        connectionViewModel.handleCloseManage(ConnectionViewManagement.BANDWIDTH_LIMIT)
+      },
+      onUpdateBandwidthLimit = {
+        connectionViewModel.handleUpdateBandwidthLimit(
+            scope = lifecycleScope,
+            limit = it,
+        )
+      },
   )
 }

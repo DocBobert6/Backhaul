@@ -28,6 +28,5 @@ enum class MainView(
   STATUS(R.string.main_tab_name_status, R2.drawable.ic_wifi_tethering_24),
   BEHAVIOR(R.string.main_tab_name_behavior, R.drawable.psychology_24px),
   INFO(R.string.main_tab_name_info, R.drawable.quick_reference_24px),
-  CONNECTIONS(R.string.main_tab_name_connections, R.drawable.hub_24px),
   SETTINGS(R.string.main_tab_name_settings, R3.drawable.settings_24px),
 }

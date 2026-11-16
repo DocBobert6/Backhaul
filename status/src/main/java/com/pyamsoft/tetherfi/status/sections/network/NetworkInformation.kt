@@ -76,19 +76,10 @@ internal fun LazyListScope.renderNetworkInformation(
     onSocksEnabledChanged: (Boolean) -> Unit,
     onPortChanged: (Int) -> Unit,
     onEnableChangeFailed: (ServerPortTypes) -> Unit,
-
-    // Connections
-    onShowQRCode: () -> Unit,
-    onRefreshConnection: () -> Unit,
-
-    // Errors
-    onShowNetworkError: () -> Unit,
-    onShowHotspotError: () -> Unit,
-
-    // Jump links
-    onJumpToHowTo: () -> Unit,
-    onViewSlowSpeedHelp: () -> Unit,
 ) {
+  // The error box stays: it is the detailed troubleshoot guidance for a
+  // broadcast or proxy failure. The running view is the diagram sheet
+  // itself, so there is no running branch any more.
   item(
       contentType = NetworkStatusWidgetsContentTypes.NETWORK_ERROR,
   ) {
@@ -157,20 +148,8 @@ internal fun LazyListScope.renderNetworkInformation(
         onTogglePasswordVisibility = onTogglePasswordVisibility,
         onEnableChangeFailed = onEnableChangeFailed,
     )
-  } else {
-    renderRunningItems(
-        modifier = itemModifier,
-        state = state,
-        serverViewState = serverViewState,
-        onTogglePasswordVisibility = onTogglePasswordVisibility,
-        onShowQRCode = onShowQRCode,
-        onRefreshConnection = onRefreshConnection,
-        onShowHotspotError = onShowHotspotError,
-        onShowNetworkError = onShowNetworkError,
-        onJumpToHowTo = onJumpToHowTo,
-        onViewSlowSpeedHelp = onViewSlowSpeedHelp,
-    )
   }
+  // When running, the diagram sheet above is the whole running view.
 }
 
 @TestOnly
@@ -198,18 +177,12 @@ private fun PreviewNetworkInformation(
               this.ssid.value = ssid
               this.password.value = password
             },
-        onShowNetworkError = {},
-        onShowQRCode = {},
-        onRefreshConnection = {},
-        onJumpToHowTo = {},
         onHttpEnabledChanged = {},
         onSocksEnabledChanged = {},
         onPortChanged = {},
         onSsidChanged = {},
         onPasswordChanged = {},
-        onShowHotspotError = {},
         onTogglePasswordVisibility = {},
-        onViewSlowSpeedHelp = {},
         onEnableChangeFailed = {},
     )
   }

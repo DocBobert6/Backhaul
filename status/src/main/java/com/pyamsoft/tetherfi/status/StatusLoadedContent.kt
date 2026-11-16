@@ -18,19 +18,15 @@
 
 package com.pyamsoft.tetherfi.status
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.core.LintIgnoreLongMethod
 import com.pyamsoft.pydroid.core.LintIgnoreTooManyFunctions
 import com.pyamsoft.pydroid.theme.keylines
@@ -38,9 +34,11 @@ import com.pyamsoft.tetherfi.server.ServerNetworkBand
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
 import com.pyamsoft.tetherfi.server.status.RunningStatus
+import com.pyamsoft.tetherfi.status.diagram.SheetSectionHeader
 import com.pyamsoft.tetherfi.status.sections.broadcast.BroadcastTypeSelection
 import com.pyamsoft.tetherfi.status.sections.broadcast.PreferredNetworkSelection
 import com.pyamsoft.tetherfi.status.sections.broadcast.renderBroadcastFrequency
+import com.pyamsoft.tetherfi.status.sections.network.ViewInstructions
 import com.pyamsoft.tetherfi.status.sections.network.renderNetworkInformation
 import com.pyamsoft.tetherfi.ui.BottomPadding
 import com.pyamsoft.tetherfi.ui.LANDSCAPE_MAX_WIDTH
@@ -54,9 +52,9 @@ import com.pyamsoft.tetherfi.ui.test.makeTestServerState
 import org.jetbrains.annotations.TestOnly
 
 private enum class StatusLoadedContentTypes {
-  SPACER,
   BROADCAST_TYPE,
   PREFERRED_NETWORK,
+  HOWTO,
   BOTTOM_SPACEAR,
 }
 
@@ -95,6 +93,9 @@ internal fun LazyListScope.renderLoadedContent(
     onJumpToHowTo: () -> Unit,
     onViewSlowSpeedHelp: () -> Unit,
 ) {
+  // The error box and the editable configuration live below the diagram
+  // sheet. The running view is the diagram itself — there are no config
+  // cards while sharing.
   renderNetworkInformation(
       itemModifier = itemModifier,
       isEditable = isEditable,
@@ -110,12 +111,6 @@ internal fun LazyListScope.renderLoadedContent(
       onPortChanged = onPortChanged,
       onEnableChangeFailed = onEnableChangeFailed,
       onTogglePasswordVisibility = onTogglePasswordVisibility,
-      onShowQRCode = onShowQRCode,
-      onRefreshConnection = onRefreshConnection,
-      onShowNetworkError = onShowNetworkError,
-      onShowHotspotError = onShowHotspotError,
-      onJumpToHowTo = onJumpToHowTo,
-      onViewSlowSpeedHelp = onViewSlowSpeedHelp,
   )
 
   renderBroadcastFrequency(
@@ -127,53 +122,43 @@ internal fun LazyListScope.renderLoadedContent(
   )
 
   item(
-      contentType = StatusLoadedContentTypes.SPACER,
-  ) {
-    Spacer(
-        modifier = itemModifier.height(MaterialTheme.keylines.content),
-    )
-  }
-
-  item(
       contentType = StatusLoadedContentTypes.PREFERRED_NETWORK,
   ) {
-    Card(
-        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
-        border =
-            BorderStroke(
-                width = 2.dp,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ),
-        shape = MaterialTheme.shapes.large,
-    ) {
-      PreferredNetworkSelection(
-          modifier = Modifier.padding(vertical = MaterialTheme.keylines.content),
-          serverViewState = serverViewState,
-          isEditable = isEditable,
-          onSelectPreferredNetwork = onSelectPreferredNetwork,
-      )
-    }
+    SheetSectionHeader(
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
+        text = stringResource(R.string.preferred_network_title),
+    )
+    PreferredNetworkSelection(
+        modifier = itemModifier.padding(vertical = MaterialTheme.keylines.content),
+        serverViewState = serverViewState,
+        isEditable = isEditable,
+        onSelectPreferredNetwork = onSelectPreferredNetwork,
+    )
   }
 
   item(
       contentType = StatusLoadedContentTypes.BROADCAST_TYPE,
   ) {
-    Card(
-        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
-        border =
-            BorderStroke(
-                width = 2.dp,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ),
-        shape = MaterialTheme.shapes.large,
-    ) {
-      BroadcastTypeSelection(
-          modifier = Modifier.padding(vertical = MaterialTheme.keylines.content),
-          serverViewState = serverViewState,
-          isEditable = isEditable,
-          onSelectBroadcastType = onSelectBroadcastType,
-      )
-    }
+    SheetSectionHeader(
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
+        text = stringResource(R.string.broadcast_selection_title),
+    )
+    BroadcastTypeSelection(
+        modifier = itemModifier.padding(vertical = MaterialTheme.keylines.content),
+        serverViewState = serverViewState,
+        isEditable = isEditable,
+        onSelectBroadcastType = onSelectBroadcastType,
+    )
+  }
+
+  item(
+      contentType = StatusLoadedContentTypes.HOWTO,
+  ) {
+    ViewInstructions(
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
+        onJumpToHowTo = onJumpToHowTo,
+        onViewSlowSpeedHelp = onViewSlowSpeedHelp,
+    )
   }
 
   renderLinks(

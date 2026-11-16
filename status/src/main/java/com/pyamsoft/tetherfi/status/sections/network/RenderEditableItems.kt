@@ -19,7 +19,6 @@
 package com.pyamsoft.tetherfi.status.sections.network
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyamsoft.pydroid.core.LintIgnoreLongMethod
 import com.pyamsoft.pydroid.core.LintIgnoreTooManyFunctions
@@ -54,6 +51,7 @@ import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
 import com.pyamsoft.tetherfi.status.MutableStatusViewState
 import com.pyamsoft.tetherfi.status.R
 import com.pyamsoft.tetherfi.status.StatusViewState
+import com.pyamsoft.tetherfi.status.diagram.SheetSectionHeader
 import com.pyamsoft.tetherfi.ui.LANDSCAPE_MAX_WIDTH
 import com.pyamsoft.tetherfi.ui.ServerPortTypes
 import com.pyamsoft.tetherfi.ui.ServerViewState
@@ -134,61 +132,42 @@ internal fun LazyListScope.renderEditableItems(
     val isHttpEnabled by serverViewState.isHttpEnabled.collectAsStateWithLifecycle()
     val isSocksEnabled by serverViewState.isSocksEnabled.collectAsStateWithLifecycle()
 
-    Card(
+    // The proxy editors are a labelled section of the sheet, not a card.
+    SheetSectionHeader(
         modifier = modifier.padding(top = MaterialTheme.keylines.content),
-        border =
-            BorderStroke(
-                width = 2.dp,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ),
-        shape = MaterialTheme.shapes.large,
-    ) {
-      Column {
-        Text(
-            modifier =
-                Modifier.padding(horizontal = MaterialTheme.keylines.content)
-                    .padding(top = MaterialTheme.keylines.content)
-                    .padding(bottom = MaterialTheme.keylines.baseline),
-            text = stringResource(R.string.editmode_hotspot_proxy_mode_title),
-            style =
-                MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.W700,
-                    color = MaterialTheme.colorScheme.primary,
-                ),
-        )
+        text = stringResource(R.string.editmode_hotspot_proxy_mode_title),
+    )
 
-        EditProxyPort(
-            modifier = modifier.padding(bottom = MaterialTheme.keylines.baseline),
-            portType = ServerPortTypes.HTTP,
-            titleRes = R.string.editmode_hotspot_proxy_http_title,
-            descriptionRes = R.string.editmode_hotspot_proxy_http_description,
-            isEnabled = isHttpEnabled,
-            isOtherEnabled = isSocksEnabled,
-            onEnabledChanged = onHttpEnabledChanged,
-            onEnableChangeFailed = onEnableChangeFailed,
-        )
+    EditProxyPort(
+        modifier = modifier.padding(bottom = MaterialTheme.keylines.baseline),
+        portType = ServerPortTypes.HTTP,
+        titleRes = R.string.editmode_hotspot_proxy_http_title,
+        descriptionRes = R.string.editmode_hotspot_proxy_http_description,
+        isEnabled = isHttpEnabled,
+        isOtherEnabled = isSocksEnabled,
+        onEnabledChanged = onHttpEnabledChanged,
+        onEnableChangeFailed = onEnableChangeFailed,
+    )
 
-        EditProxyPort(
-            modifier = modifier.padding(bottom = MaterialTheme.keylines.baseline),
-            portType = ServerPortTypes.SOCKS,
-            titleRes = R.string.editmode_hotspot_proxy_socks_title,
-            descriptionRes = R.string.editmode_hotspot_proxy_socks_description,
-            isEnabled = isSocksEnabled,
-            isOtherEnabled = isHttpEnabled,
-            onEnabledChanged = onSocksEnabledChanged,
-            onEnableChangeFailed = onEnableChangeFailed,
-        )
+    EditProxyPort(
+        modifier = modifier.padding(bottom = MaterialTheme.keylines.baseline),
+        portType = ServerPortTypes.SOCKS,
+        titleRes = R.string.editmode_hotspot_proxy_socks_title,
+        descriptionRes = R.string.editmode_hotspot_proxy_socks_description,
+        isEnabled = isSocksEnabled,
+        isOtherEnabled = isHttpEnabled,
+        onEnabledChanged = onSocksEnabledChanged,
+        onEnableChangeFailed = onEnableChangeFailed,
+    )
 
-        EditHttpPort(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(horizontal = MaterialTheme.keylines.content)
-                    .padding(bottom = MaterialTheme.keylines.content),
-            serverViewState = serverViewState,
-            onPortChanged = onPortChanged,
-        )
-      }
-    }
+    EditHttpPort(
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(horizontal = MaterialTheme.keylines.content)
+                .padding(bottom = MaterialTheme.keylines.content),
+        serverViewState = serverViewState,
+        onPortChanged = onPortChanged,
+    )
   }
 }
 

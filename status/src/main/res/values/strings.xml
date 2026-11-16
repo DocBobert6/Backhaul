@@ -32,4 +32,20 @@
   <string
     name="hotspot_config_password_requirement"
   >• The password must be at least 8 characters long. This is a system requirement.</string>
+
+  <!-- Carrier diagram status screen (Phase 3) -->
+  <string name="diagram_section_network">Network</string>
+  <string name="diagram_section_throughput">Throughput — live</string>
+  <string name="diagram_sharing_off">SHARING OFF — tap the breaker to start</string>
+  <string name="diagram_breaker_sharing">SHARING</string>
+  <string name="diagram_breaker_off">OFF</string>
+  <string name="diagram_this_device">this device</string>
+  <string name="diagram_phone">PHONE</string>
+  <string name="diagram_shared_session">shared this session</string>
+  <string name="diagram_proxy_both">HTTP + SOCKS</string>
+  <string name="diagram_show_qr">Show QR code</string>
+  <string name="diagram_refresh">Refresh</string>
+  <string name="diagram_error_broadcast">Broadcast failed</string>
+  <string name="diagram_error_proxy">Proxy failed</string>
+  <string name="diagram_tap_node">Tap a device to manage it</string>
 </resources>

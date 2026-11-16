@@ -18,6 +18,7 @@
 
 package com.pyamsoft.tetherfi.status
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -26,35 +27,60 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyamsoft.pydroid.core.LintIgnoreTooManyFunctions
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.pydroid.ui.util.collectAsStateListWithLifecycle
+import com.pyamsoft.tetherfi.connections.ConnectionViewState
 import com.pyamsoft.tetherfi.server.ServerNetworkBand
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
+import com.pyamsoft.tetherfi.server.clients.TetherClient
+import com.pyamsoft.tetherfi.server.clients.TransferAmount
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
 import com.pyamsoft.tetherfi.server.status.RunningStatus
+import com.pyamsoft.tetherfi.status.diagram.ClientNodeDialog
+import com.pyamsoft.tetherfi.status.diagram.DiagramSheet
+import com.pyamsoft.tetherfi.status.diagram.NetworkDiagram
+import com.pyamsoft.tetherfi.status.diagram.SheetDivider
+import com.pyamsoft.tetherfi.status.diagram.SheetReadoutRow
+import com.pyamsoft.tetherfi.status.diagram.SheetSectionHeader
+import com.pyamsoft.tetherfi.status.diagram.ThroughputSparkline
+import com.pyamsoft.tetherfi.status.diagram.rememberThroughput
+import com.pyamsoft.tetherfi.status.sections.network.ViewPassword
 import com.pyamsoft.tetherfi.ui.LANDSCAPE_MAX_WIDTH
 import com.pyamsoft.tetherfi.ui.LoadingSpinner
 import com.pyamsoft.tetherfi.ui.STATIC_HOTSPOT_ERROR
 import com.pyamsoft.tetherfi.ui.ServerPortTypes
 import com.pyamsoft.tetherfi.ui.ServerViewState
+import com.pyamsoft.tetherfi.ui.rememberPortNumber
+import com.pyamsoft.tetherfi.ui.rememberServerHostname
+import com.pyamsoft.tetherfi.ui.rememberServerSSID
 import com.pyamsoft.tetherfi.ui.renderPYDroidExtras
 import com.pyamsoft.tetherfi.ui.test.TEST_PASSWORD
 import com.pyamsoft.tetherfi.ui.test.TEST_SSID
 import com.pyamsoft.tetherfi.ui.test.TestServerState
 import com.pyamsoft.tetherfi.ui.test.makeTestServerState
+import java.time.Clock
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.annotations.TestOnly
 
 private enum class StatusScreenContentTypes {
-  BUTTON,
+  DIAGRAM,
   LOADING,
 }
 
@@ -97,6 +123,19 @@ fun StatusScreen(
     // Jump links
     onJumpToHowTo: () -> Unit,
     onViewSlowSpeedHelp: () -> Unit,
+
+    // Connections — the old Clients tab now lives on the diagram
+    connectionState: ConnectionViewState,
+    onToggleBlock: (TetherClient) -> Unit,
+    onOpenManageNickName: (TetherClient) -> Unit,
+    onCloseManageNickName: () -> Unit,
+    onUpdateNickName: (String) -> Unit,
+    onOpenManageTransferLimit: (TetherClient) -> Unit,
+    onCloseManageTransferLimit: () -> Unit,
+    onUpdateTransferLimit: (TransferAmount?) -> Unit,
+    onOpenManageBandwidthLimit: (TetherClient) -> Unit,
+    onCloseManageBandwidthLimit: () -> Unit,
+    onUpdateBandwidthLimit: (TransferAmount?) -> Unit,
 ) {
   val wiDiStatus by serverViewState.wiDiStatus.collectAsStateWithLifecycle()
   val proxyStatus by serverViewState.proxyStatus.collectAsStateWithLifecycle()
@@ -147,6 +186,13 @@ fun StatusScreen(
   val handleStatusUpdated by rememberUpdatedState(onStatusUpdated)
   LaunchedEffect(hotspotStatus) { handleStatusUpdated(hotspotStatus) }
 
+  // Clients, folded in from the old Clients tab
+  val clients = connectionState.connections.collectAsStateListWithLifecycle()
+  val blocked = connectionState.blocked.collectAsStateListWithLifecycle()
+  var selectedClient by remember { mutableStateOf<TetherClient?>(null) }
+
+  val isSharing = hotspotStatus is RunningStatus.Running
+
   LazyColumn(
       modifier = modifier,
       state = lazyListState,
@@ -154,29 +200,82 @@ fun StatusScreen(
       horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     item(
-        contentType = StatusScreenContentTypes.BUTTON,
+        contentType = StatusScreenContentTypes.DIAGRAM,
     ) {
-      HotspotStarter(
+      DiagramSheet(
           modifier =
               Modifier.width(LANDSCAPE_MAX_WIDTH).padding(top = MaterialTheme.keylines.content),
-          isButtonEnabled = isButtonEnabled,
-          hotspotStatus = hotspotStatus,
-          appName = appName,
-          onToggleProxy = onToggleProxy,
-      )
+      ) {
+        if (hotspotStatus is RunningStatus.NotRunning) {
+          Text(
+              modifier = Modifier.padding(bottom = MaterialTheme.keylines.content),
+              text = stringResource(R.string.diagram_sharing_off),
+              style =
+                  MaterialTheme.typography.bodyMedium.copy(
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  ),
+          )
+        }
+
+        SheetSectionHeader(
+            text = stringResource(R.string.diagram_section_network),
+        )
+
+        // The sampler is shared: the sparkline draws the history, and the
+        // diagram's wave only runs while traffic is actually flowing.
+        val throughput = rememberThroughput(
+            clients = clients,
+            isRunning = isSharing,
+        )
+
+        DiagramContent(
+            state = state,
+            serverViewState = serverViewState,
+            wiDiStatus = wiDiStatus,
+            proxyStatus = proxyStatus,
+            hotspotStatus = hotspotStatus,
+            isButtonEnabled = isButtonEnabled,
+            clients = clients,
+            blocked = blocked,
+            isFlowing = isSharing && throughput.currentRateBytesPerSec > 0F,
+            onToggleProxy = onToggleProxy,
+            onClientSelected = { selectedClient = it },
+            onTogglePasswordVisibility = onTogglePasswordVisibility,
+            onShowBroadcastError = onShowBroadcastError,
+            onShowProxyError = onShowProxyError,
+        )
+
+        SheetDivider()
+
+        SheetSectionHeader(
+            text = stringResource(R.string.diagram_section_throughput),
+        )
+
+        ThroughputSparkline(
+            throughput = throughput,
+            isRunning = isSharing,
+        )
+
+        if (isSharing) {
+          DiagramActions(
+              onShowQRCode = onShowQRCode,
+              onRefreshConnection = onRefreshConnection,
+          )
+
+          if (clients.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(top = MaterialTheme.keylines.baseline),
+                text = stringResource(R.string.diagram_tap_node),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+      }
     }
 
     renderPYDroidExtras(
         modifier = Modifier.widthIn(max = LANDSCAPE_MAX_WIDTH),
-    )
-
-    renderHotspotStatus(
-        itemModifier = Modifier.widthIn(max = LANDSCAPE_MAX_WIDTH),
-        wiDiStatus = wiDiStatus,
-        proxyStatus = proxyStatus,
-        hotspotStatus = hotspotStatus,
-        onShowBroadcastError = onShowBroadcastError,
-        onShowProxyError = onShowProxyError,
     )
 
     when (loadingState) {
@@ -220,6 +319,168 @@ fun StatusScreen(
             onEnableChangeFailed = onEnableChangeFailed,
         )
       }
+    }
+  }
+
+  selectedClient?.also { client ->
+    ClientNodeDialog(
+        client = client,
+        connectionState = connectionState,
+        onDismiss = { selectedClient = null },
+        onToggleBlock = onToggleBlock,
+        onOpenManageNickName = onOpenManageNickName,
+        onCloseManageNickName = onCloseManageNickName,
+        onUpdateNickName = onUpdateNickName,
+        onOpenManageTransferLimit = onOpenManageTransferLimit,
+        onCloseManageTransferLimit = onCloseManageTransferLimit,
+        onUpdateTransferLimit = onUpdateTransferLimit,
+        onOpenManageBandwidthLimit = onOpenManageBandwidthLimit,
+        onCloseManageBandwidthLimit = onCloseManageBandwidthLimit,
+        onUpdateBandwidthLimit = onUpdateBandwidthLimit,
+    )
+  }
+}
+
+@Composable
+private fun DiagramContent(
+    state: StatusViewState,
+    serverViewState: ServerViewState,
+    wiDiStatus: RunningStatus,
+    proxyStatus: RunningStatus,
+    hotspotStatus: RunningStatus,
+    isButtonEnabled: Boolean,
+    clients: List<TetherClient>,
+    blocked: List<TetherClient>,
+    isFlowing: Boolean,
+    onToggleProxy: () -> Unit,
+    onClientSelected: (TetherClient) -> Unit,
+    onTogglePasswordVisibility: () -> Unit,
+    onShowBroadcastError: () -> Unit,
+    onShowProxyError: () -> Unit,
+) {
+  val group by serverViewState.group.collectAsStateWithLifecycle()
+  val connection by serverViewState.connection.collectAsStateWithLifecycle()
+  val broadcastType by serverViewState.broadcastType.collectAsStateWithLifecycle()
+  val port by serverViewState.port.collectAsStateWithLifecycle()
+  val band by state.band.collectAsStateWithLifecycle()
+
+  val isSharing = hotspotStatus is RunningStatus.Running
+  val readoutColor =
+      if (isSharing) {
+        androidx.compose.ui.graphics.Color.Unspecified
+      } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+      }
+
+  NetworkDiagram(
+      hotspotStatus = hotspotStatus,
+      isButtonEnabled = isButtonEnabled,
+      clients = clients,
+      blocked = blocked,
+      isFlowing = isFlowing,
+      onToggleProxy = onToggleProxy,
+      onClientSelected = onClientSelected,
+  )
+
+  // Errors say what failed, in words, red — broadcast vs proxy.
+  if (wiDiStatus is RunningStatus.Error) {
+    Text(
+        modifier =
+            Modifier.padding(top = MaterialTheme.keylines.baseline)
+                .clickable { onShowBroadcastError() },
+        text =
+            stringResource(
+                R.string.diagram_error_broadcast,
+            ) + ": " + (wiDiStatus.throwable.message ?: stringResource(R.string.status_error)),
+        style =
+            MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.W700,
+            ),
+        color = MaterialTheme.colorScheme.error,
+    )
+  }
+  if (proxyStatus is RunningStatus.Error) {
+    Text(
+        modifier =
+            Modifier.padding(top = MaterialTheme.keylines.baseline)
+                .clickable { onShowProxyError() },
+        text =
+            stringResource(
+                R.string.diagram_error_proxy,
+            ) + ": " + (proxyStatus.throwable.message ?: stringResource(R.string.status_error)),
+        style =
+            MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.W700,
+            ),
+        color = MaterialTheme.colorScheme.error,
+    )
+  }
+
+  // Machine readouts, always monospace.
+  val ssid = rememberServerSSID(group)
+  val hostname = rememberServerHostname(connection)
+  val portNumber = rememberPortNumber(port)
+  SheetReadoutRow(
+      key = stringResource(R.string.viewmode_hotspot_name),
+      value = ssid,
+      valueColor = readoutColor,
+  )
+  SheetReadoutRow(
+      key = stringResource(R.string.hotspot_proxy_port),
+      value = "$hostname:$portNumber · ${stringResource(R.string.diagram_proxy_both)}",
+      valueColor = readoutColor,
+  )
+  if (band != null) {
+    val bandText =
+        when (band) {
+          ServerNetworkBand.LEGACY -> stringResource(R.string.network_bands_legacy_title)
+          ServerNetworkBand.MODERN -> stringResource(R.string.network_bands_modern_title)
+          ServerNetworkBand.MODERN_6 -> stringResource(R.string.network_bands_modern_6_title)
+          null -> ""
+        }
+    if (bandText.isNotBlank()) {
+      SheetReadoutRow(
+          key = stringResource(R.string.broadcast_frequency),
+          value = bandText,
+          valueColor = readoutColor,
+      )
+    }
+  }
+
+  // The password stays visible on request while running, as before.
+  if (isSharing && broadcastType == BroadcastType.WIFI_DIRECT) {
+    ViewPassword(
+        modifier = Modifier.padding(top = MaterialTheme.keylines.baseline),
+        state = state,
+        serverViewState = serverViewState,
+        onTogglePasswordVisibility = onTogglePasswordVisibility,
+    )
+  }
+}
+
+@Composable
+private fun DiagramActions(
+    onShowQRCode: () -> Unit,
+    onRefreshConnection: () -> Unit,
+) {
+  androidx.compose.foundation.layout.Row(
+      modifier = Modifier.padding(top = MaterialTheme.keylines.content),
+  ) {
+    TextButton(
+        onClick = onShowQRCode,
+    ) {
+      Text(
+          text = stringResource(R.string.diagram_show_qr),
+      )
+    }
+    TextButton(
+        onClick = onRefreshConnection,
+    ) {
+      Text(
+          text = stringResource(R.string.diagram_refresh),
+      )
     }
   }
 }
@@ -266,6 +527,24 @@ private fun PreviewStatusScreen(
       onSelectBroadcastType = {},
       onSelectPreferredNetwork = {},
       onEnableChangeFailed = {},
+      connectionState =
+          object : ConnectionViewState {
+            override val connections = MutableStateFlow(emptyList<TetherClient>())
+            override val blocked = MutableStateFlow<Collection<TetherClient>>(emptySet())
+            override val managingNickName = MutableStateFlow<TetherClient?>(null)
+            override val managingTransferLimit = MutableStateFlow<TetherClient?>(null)
+            override val managingBandwidthLimit = MutableStateFlow<TetherClient?>(null)
+          },
+      onToggleBlock = {},
+      onOpenManageNickName = {},
+      onCloseManageNickName = {},
+      onUpdateNickName = {},
+      onOpenManageTransferLimit = {},
+      onCloseManageTransferLimit = {},
+      onUpdateTransferLimit = {},
+      onOpenManageBandwidthLimit = {},
+      onCloseManageBandwidthLimit = {},
+      onUpdateBandwidthLimit = {},
   )
 }
 

@@ -49,52 +49,7 @@ import com.pyamsoft.tetherfi.ui.R as R2
 import com.pyamsoft.tetherfi.ui.ServerViewState
 import com.pyamsoft.tetherfi.ui.dialog.SlowSpeedsUpsell
 import com.pyamsoft.tetherfi.ui.icons.IconPainters
-import com.pyamsoft.tetherfi.ui.rememberPortNumber
-import com.pyamsoft.tetherfi.ui.rememberServerHostname
 import com.pyamsoft.tetherfi.ui.rememberServerPassword
-import com.pyamsoft.tetherfi.ui.rememberServerSSID
-
-@Composable
-internal fun ViewProxy(
-    modifier: Modifier = Modifier,
-    serverViewState: ServerViewState,
-) {
-  val connection by serverViewState.connection.collectAsStateWithLifecycle()
-  val ipAddress = rememberServerHostname(connection)
-
-  val portNumber by serverViewState.port.collectAsStateWithLifecycle()
-  val httpPort = rememberPortNumber(portNumber)
-
-  Column(
-      modifier = modifier,
-  ) {
-    StatusItem(
-        modifier = Modifier.padding(vertical = MaterialTheme.keylines.baseline),
-        title = stringResource(R.string.viewmode_hotspot_hostname),
-        value = ipAddress,
-        valueStyle =
-            MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.W400,
-                fontFamily = FontFamily.Monospace,
-            ),
-    )
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      StatusItem(
-          modifier = Modifier.padding(end = MaterialTheme.keylines.content),
-          title = stringResource(R.string.hotspot_proxy_port),
-          value = httpPort,
-          valueStyle =
-              MaterialTheme.typography.titleLarge.copy(
-                  fontWeight = FontWeight.W400,
-                  fontFamily = FontFamily.Monospace,
-              ),
-      )
-    }
-  }
-}
 
 @Composable
 internal fun ViewPassword(
@@ -147,26 +102,6 @@ internal fun ViewPassword(
       }
     }
   }
-}
-
-@Composable
-internal fun ViewSsid(
-    modifier: Modifier = Modifier,
-    serverViewState: ServerViewState,
-) {
-  val group by serverViewState.group.collectAsStateWithLifecycle()
-  val ssid = rememberServerSSID(group)
-
-  StatusItem(
-      modifier = modifier.padding(end = MaterialTheme.keylines.content),
-      title = stringResource(R.string.viewmode_hotspot_name),
-      value = ssid,
-      valueStyle =
-          MaterialTheme.typography.titleLarge.copy(
-              fontWeight = FontWeight.W400,
-              fontFamily = FontFamily.Monospace,
-          ),
-  )
 }
 
 @Composable

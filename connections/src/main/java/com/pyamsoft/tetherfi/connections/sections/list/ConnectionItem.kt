@@ -75,7 +75,7 @@ private val FIRST_SEEN_DATE_FORMATTER =
     }
 
 @Composable
-internal fun ConnectionItem(
+fun ConnectionItem(
     modifier: Modifier = Modifier,
     blocked: List<TetherClient>,
     client: TetherClient,

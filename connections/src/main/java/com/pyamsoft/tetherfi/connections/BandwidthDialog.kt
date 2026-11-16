@@ -57,7 +57,7 @@ import com.pyamsoft.tetherfi.ui.dialog.CardDialog
 import org.jetbrains.annotations.TestOnly
 
 @Composable
-internal fun TransferDialog(
+fun TransferDialog(
     modifier: Modifier = Modifier,
     client: TetherClient,
     onDismiss: () -> Unit,
@@ -75,7 +75,7 @@ internal fun TransferDialog(
 }
 
 @Composable
-internal fun BandwidthLimitDialog(
+fun BandwidthLimitDialog(
     modifier: Modifier = Modifier,
     client: TetherClient,
     onDismiss: () -> Unit,

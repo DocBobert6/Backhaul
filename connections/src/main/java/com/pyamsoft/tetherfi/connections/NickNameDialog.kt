@@ -43,7 +43,7 @@ import java.time.Clock
 import org.jetbrains.annotations.TestOnly
 
 @Composable
-internal fun NickNameDialog(
+fun NickNameDialog(
     modifier: Modifier = Modifier,
     client: TetherClient,
     onDismiss: () -> Unit,
