@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.pyamsoft.pydroid.core.LintIgnoreLongMethod
 import com.pyamsoft.pydroid.core.LintIgnoreTooManyFunctions
@@ -34,7 +33,6 @@ import com.pyamsoft.tetherfi.server.ServerNetworkBand
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
 import com.pyamsoft.tetherfi.server.status.RunningStatus
-import com.pyamsoft.tetherfi.status.diagram.SheetSectionHeader
 import com.pyamsoft.tetherfi.status.sections.broadcast.BroadcastTypeSelection
 import com.pyamsoft.tetherfi.status.sections.broadcast.PreferredNetworkSelection
 import com.pyamsoft.tetherfi.status.sections.broadcast.renderBroadcastFrequency
@@ -124,10 +122,7 @@ internal fun LazyListScope.renderLoadedContent(
   item(
       contentType = StatusLoadedContentTypes.PREFERRED_NETWORK,
   ) {
-    SheetSectionHeader(
-        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
-        text = stringResource(R.string.preferred_network_title),
-    )
+    // PreferredNetworkSelection draws its own title ("Preferred Network").
     PreferredNetworkSelection(
         modifier = itemModifier.padding(vertical = MaterialTheme.keylines.content),
         serverViewState = serverViewState,
@@ -139,10 +134,7 @@ internal fun LazyListScope.renderLoadedContent(
   item(
       contentType = StatusLoadedContentTypes.BROADCAST_TYPE,
   ) {
-    SheetSectionHeader(
-        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
-        text = stringResource(R.string.broadcast_selection_title),
-    )
+    // BroadcastTypeSelection draws its own title ("Hotspot Type").
     BroadcastTypeSelection(
         modifier = itemModifier.padding(vertical = MaterialTheme.keylines.content),
         serverViewState = serverViewState,

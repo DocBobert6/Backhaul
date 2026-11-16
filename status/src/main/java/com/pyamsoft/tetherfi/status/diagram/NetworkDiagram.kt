@@ -131,6 +131,11 @@ internal fun NetworkDiagram(
   val errorColor = colors.error
   val inkColor = colors.onSurface
 
+  // Node labels resolve here, in the composable body — stringResource is
+  // a @Composable call and cannot run inside the Canvas onDraw block.
+  val phoneLabel = stringResource(R.string.diagram_phone)
+  val thisDeviceLabel = stringResource(R.string.diagram_this_device)
+
   Canvas(
       modifier =
           modifier
@@ -197,8 +202,8 @@ internal fun NetworkDiagram(
             mutedColor = mutedColor,
             inkColor = inkColor,
             isDimmed = dimmed,
-            phoneLabel = stringResource(R.string.diagram_phone),
-            thisDeviceLabel = stringResource(R.string.diagram_this_device),
+            phoneLabel = phoneLabel,
+            thisDeviceLabel = thisDeviceLabel,
         )
 
         drawDeviceNodes(
