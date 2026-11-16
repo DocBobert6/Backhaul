@@ -36,9 +36,9 @@ import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.ui.util.fillUpToPortraitSize
 import com.pyamsoft.tetherfi.server.ServerSocketTimeout
 import com.pyamsoft.tetherfi.server.status.RunningStatus
+import com.pyamsoft.tetherfi.server.status.overallStatus
 import com.pyamsoft.tetherfi.ui.LANDSCAPE_MAX_WIDTH
 import com.pyamsoft.tetherfi.ui.LoadingSpinner
-import com.pyamsoft.tetherfi.ui.STATIC_HOTSPOT_ERROR
 import com.pyamsoft.tetherfi.ui.ServerViewState
 import com.pyamsoft.tetherfi.ui.renderLinks
 import com.pyamsoft.tetherfi.ui.renderPYDroidExtras
@@ -84,32 +84,9 @@ fun BehaviorScreen(
           wiDiStatus,
           proxyStatus,
       ) {
-        if (wiDiStatus is RunningStatus.Error || proxyStatus is RunningStatus.Error) {
-          return@remember STATIC_HOTSPOT_ERROR
-        }
-
-        // If either is starting, mark us starting
-        if (wiDiStatus is RunningStatus.Starting || proxyStatus is RunningStatus.Starting) {
-          return@remember RunningStatus.Starting
-        }
-
-        // If the wifi direct broadcast is up, but the proxy is not up yet, mark starting
-        if (wiDiStatus is RunningStatus.Running && proxyStatus !is RunningStatus.Running) {
-          return@remember RunningStatus.Starting
-        }
-
-        // If either is stopping, mark us stopping
-        if (wiDiStatus is RunningStatus.Stopping || proxyStatus is RunningStatus.Stopping) {
-          return@remember RunningStatus.Stopping
-        }
-
-        if (wiDiStatus is RunningStatus.Running) {
-          // If the Wifi Direct is running, watch the proxy behavior
-          return@remember proxyStatus
-        } else {
-          // Otherwise fallback to wiDi behavior
-          return@remember wiDiStatus
-        }
+        // One shared derivation for the app, the Behavior screen and
+        // the QS tile — see overallStatus().
+        return@remember overallStatus(wiDiStatus, proxyStatus)
       }
 
   val isEditable =

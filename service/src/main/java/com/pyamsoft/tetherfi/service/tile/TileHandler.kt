@@ -24,6 +24,7 @@ import com.pyamsoft.tetherfi.core.Timber
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastNetworkStatus
 import com.pyamsoft.tetherfi.server.proxy.SharedProxy
 import com.pyamsoft.tetherfi.server.status.RunningStatus
+import com.pyamsoft.tetherfi.server.status.overallStatus
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -87,19 +88,12 @@ constructor(
 
   @CheckResult
   fun getOverallStatus(): RunningStatus {
-    val broadcastStatus = networkStatus.getCurrentStatus()
-    val proxyStatus = proxy.getCurrentStatus()
-
-    // If either piece has a specific error state, return it
-    if (broadcastStatus is RunningStatus.Error) {
-      return broadcastStatus
-    }
-    if (proxyStatus is RunningStatus.Error) {
-      return proxyStatus
-    }
-
-    // Otherwise we only care about Wifi direct
-    return broadcastStatus
+    // One shared derivation for the app, the Behavior screen and the
+    // QS tile — see overallStatus().
+    return overallStatus(
+        broadcast = networkStatus.getCurrentStatus(),
+        proxy = proxy.getCurrentStatus(),
+    )
   }
 
   fun bind(

@@ -53,6 +53,7 @@ import com.pyamsoft.tetherfi.server.clients.TetherClient
 import com.pyamsoft.tetherfi.server.clients.TransferAmount
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
 import com.pyamsoft.tetherfi.server.status.RunningStatus
+import com.pyamsoft.tetherfi.server.status.overallStatus
 import com.pyamsoft.tetherfi.status.diagram.ClientNodeDialog
 import com.pyamsoft.tetherfi.status.diagram.DiagramSheet
 import com.pyamsoft.tetherfi.status.diagram.NetworkDiagram
@@ -64,7 +65,6 @@ import com.pyamsoft.tetherfi.status.diagram.rememberThroughput
 import com.pyamsoft.tetherfi.status.sections.network.ViewPassword
 import com.pyamsoft.tetherfi.ui.LANDSCAPE_MAX_WIDTH
 import com.pyamsoft.tetherfi.ui.LoadingSpinner
-import com.pyamsoft.tetherfi.ui.STATIC_HOTSPOT_ERROR
 import com.pyamsoft.tetherfi.ui.ServerPortTypes
 import com.pyamsoft.tetherfi.ui.ServerViewState
 import com.pyamsoft.tetherfi.ui.rememberPortNumber
@@ -145,23 +145,9 @@ fun StatusScreen(
           wiDiStatus,
           proxyStatus,
       ) {
-        if (wiDiStatus is RunningStatus.Error || proxyStatus is RunningStatus.Error) {
-          return@remember STATIC_HOTSPOT_ERROR
-        }
-
-        // Otherwise if anyone is STOPPING we should let them finish
-        if (wiDiStatus is RunningStatus.Stopping) {
-          return@remember wiDiStatus
-        }
-        if (proxyStatus is RunningStatus.Stopping) {
-          return@remember proxyStatus
-        }
-
-        // Otherwise just take the broadcast status
-        //
-        // The proxy may have issues starting up, but we should allow the screen to transition
-        // and the button to be enabled
-        return@remember wiDiStatus
+        // One shared derivation for the app, the Behavior screen and
+        // the QS tile — see overallStatus().
+        return@remember overallStatus(wiDiStatus, proxyStatus)
       }
 
   val isButtonEnabled =
