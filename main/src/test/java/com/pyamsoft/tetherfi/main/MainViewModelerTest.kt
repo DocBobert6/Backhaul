@@ -158,6 +158,12 @@ private class FakeHotspotRequirements(
   override suspend fun blockers(): Collection<HotspotStartBlocker> = blockers
 }
 
+private class FakeMutableHotspotRequirements(
+    var blockers: Collection<HotspotStartBlocker> = emptySet(),
+) : HotspotRequirements {
+  override suspend fun blockers(): Collection<HotspotStartBlocker> = blockers
+}
+
 private class FakeWifiPreferences(
     private val storedPassword: String = "password",
 ) : WifiPreferences {
@@ -308,6 +314,92 @@ class MainViewModelerTest {
     val started = shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedService()
     assertEquals(TestForegroundService::class.java.name, started?.component?.className)
   }
+
+  @Test
+  fun `bind shows the permission blocker at launch when the permission is missing`() = runTest {
+    val state = MutableMainViewState()
+    val backingScope = CoroutineScope(Job())
+    val viewModeler =
+        newViewModeler(
+            state = state,
+            requirements = FakeHotspotRequirements(blockers = setOf(HotspotStartBlocker.PERMISSION)),
+            appScope = AppCoroutineScope(appScope = backingScope),
+            dispatchers = testAppDispatchers(),
+        )
+
+    viewModeler.bind(backingScope)
+
+    @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+    assertEquals(setOf(HotspotStartBlocker.PERMISSION), state.startBlockers.value)
+  }
+
+  @Test
+  fun `handlePermissionsGranted starts the proxy when a toggle was blocked by the permission`() =
+      runTest {
+        val state = MutableMainViewState()
+        val networkStatus = FakeBroadcastNetworkStatus(initialStatus = RunningStatus.NotRunning)
+        val backingScope = CoroutineScope(Job())
+        val requirements =
+            FakeMutableHotspotRequirements(
+                blockers = setOf(HotspotStartBlocker.PERMISSION),
+            )
+        val viewModeler =
+            newViewModeler(
+                state = state,
+                networkStatus = networkStatus,
+                requirements = requirements,
+                appScope = AppCoroutineScope(appScope = backingScope),
+                dispatchers = testAppDispatchers(),
+            )
+
+        viewModeler.handleToggleProxy()
+
+        @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+        assertEquals(setOf(HotspotStartBlocker.PERMISSION), state.startBlockers.value)
+        assertNull(shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedService())
+
+        // The permission is granted, so the blocker is gone now.
+        requirements.blockers = emptySet()
+
+        viewModeler.handlePermissionsGranted()
+
+        @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+        assertTrue(state.startBlockers.value.isEmpty())
+        val started = shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedService()
+        assertEquals(TestForegroundService::class.java.name, started?.component?.className)
+      }
+
+  @Test
+  fun `handlePermissionsGranted at launch only clears the blocker and does not start the proxy`() =
+      runTest {
+        val state = MutableMainViewState()
+        val backingScope = CoroutineScope(Job())
+        val viewModeler =
+            newViewModeler(
+                state = state,
+                requirements =
+                    FakeHotspotRequirements(blockers = setOf(HotspotStartBlocker.PERMISSION)),
+                appScope = AppCoroutineScope(appScope = backingScope),
+                dispatchers = testAppDispatchers(),
+            )
+
+        viewModeler.bind(backingScope)
+
+        @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+        assertEquals(setOf(HotspotStartBlocker.PERMISSION), state.startBlockers.value)
+
+        // A grant at launch, with no toggle behind it.
+        viewModeler.handlePermissionsGranted()
+
+        @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+        assertTrue(state.startBlockers.value.isEmpty())
+        assertNull(shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedService())
+      }
 
   @Test
   fun `handleToggleProxy records blockers and stops the proxy when blockers exist`() = runTest {

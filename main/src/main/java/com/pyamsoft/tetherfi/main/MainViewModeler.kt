@@ -73,6 +73,12 @@ internal constructor(
   private val isNetworkCurrentlyRunning =
       MutableStateFlow(networkStatus.getCurrentStatus() == RunningStatus.Running)
 
+  // Set when a toggle tried to start the hotspot but was blocked, so
+  // that granting the permission afterwards knows to carry on with the
+  // start. A grant at launch — with no toggle behind it — must only
+  // clear the blocker, never start sharing by itself.
+  private val pendingStartAfterGrant = MutableStateFlow(false)
+
   private fun listenServerUpdates(scope: CoroutineScope) {
     val s = state
 
@@ -221,6 +227,9 @@ internal constructor(
     state.startBlockers.value = blockers
     if (blockers.isNotEmpty()) {
       Timber.w { "Cannot launch Proxy until blockers are dealt with: $blockers" }
+      // Remember that a start was attempted, so that granting the
+      // permission afterwards can carry on with it.
+      pendingStartAfterGrant.value = true
       stopProxy()
       return
     }
@@ -329,6 +338,43 @@ internal constructor(
     listenBroadcastUpdates(scope = scope)
     listenProxySetupError(scope = scope)
     listenServerStatus(scope = scope)
+    checkPermissionsAtLaunch(scope = scope)
+  }
+
+  /**
+   * First run asks for the permission up front, instead of only when
+   * the toggle is first tapped. Only the permission blocker is raised
+   * here — location services, VPN, background data and Wi-Fi keep
+   * their toggle-time behaviour.
+   */
+  private fun checkPermissionsAtLaunch(scope: CoroutineScope) {
+    scope.launch(context = dispatchers.default) {
+      val blockers = requirements.blockers()
+      if (HotspotStartBlocker.PERMISSION in blockers) {
+        state.startBlockers.update { current ->
+          if (HotspotStartBlocker.PERMISSION in current) {
+            current
+          } else {
+            current + HotspotStartBlocker.PERMISSION
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * The permission was granted. If a toggle tried to start the hotspot
+   * and was blocked, carry on with that start now. Otherwise — a grant
+   * at launch, with no toggle behind it — only clear the blocker. A
+   * grant must never start sharing by itself.
+   */
+  fun handlePermissionsGranted() {
+    if (pendingStartAfterGrant.value) {
+      pendingStartAfterGrant.value = false
+      handleToggleProxy()
+    } else {
+      state.startBlockers.update { it - HotspotStartBlocker.PERMISSION }
+    }
   }
 
   fun handleRefreshConnectionInfo(scope: CoroutineScope) {
@@ -388,6 +434,10 @@ internal constructor(
       }
 
   fun handleDismissBlocker(blocker: HotspotStartBlocker) {
+    if (blocker == HotspotStartBlocker.PERMISSION) {
+      // No start is waiting on this grant any more.
+      pendingStartAfterGrant.value = false
+    }
     state.startBlockers.update { it - blocker }
   }
 

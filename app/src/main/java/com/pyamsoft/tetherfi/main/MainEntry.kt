@@ -58,10 +58,10 @@ import kotlinx.coroutines.withContext
 private fun RegisterPermissionRequests(
     dispatchers: AppDispatchers,
     permissionResponseBus: Flow<PermissionResponse>,
-    onToggleProxy: CoroutineScope.() -> Unit,
+    onPermissionsGranted: CoroutineScope.() -> Unit,
 ) {
   // Create requesters
-  val handleToggleProxy by rememberUpdatedState(onToggleProxy)
+  val handlePermissionsGranted by rememberUpdatedState(onPermissionsGranted)
 
   LaunchedEffect(
       permissionResponseBus,
@@ -75,7 +75,7 @@ private fun RegisterPermissionRequests(
               // Blank
             }
             is PermissionResponse.ToggleProxy -> {
-              handleToggleProxy()
+              handlePermissionsGranted()
             }
           }
         }
@@ -125,7 +125,7 @@ private fun MountHooks(
     pagerState: PagerState,
     allDestinations: List<MainView>,
     permissionResponseBus: Flow<PermissionResponse>,
-    onToggleProxy: CoroutineScope.() -> Unit,
+    onPermissionsGranted: CoroutineScope.() -> Unit,
 ) {
   SaveStateDisposableEffect(viewModel)
 
@@ -139,7 +139,7 @@ private fun MountHooks(
   RegisterPermissionRequests(
       dispatchers = dispatchers,
       permissionResponseBus = permissionResponseBus,
-      onToggleProxy = { onToggleProxy() },
+      onPermissionsGranted = { onPermissionsGranted() },
   )
 
   LaunchedEffect(viewModel) {
@@ -191,7 +191,7 @@ fun MainEntry(
       pagerState = pagerState,
       allDestinations = allDestinations,
       dispatchers = dispatchers,
-      onToggleProxy = { viewModel.handleToggleProxy() },
+      onPermissionsGranted = { viewModel.handlePermissionsGranted() },
   )
 
   MainScreen(
