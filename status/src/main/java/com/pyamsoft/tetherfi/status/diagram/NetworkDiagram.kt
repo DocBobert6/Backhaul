@@ -16,22 +16,19 @@
 
 package com.pyamsoft.tetherfi.status.diagram
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -107,22 +104,29 @@ internal fun NetworkDiagram(
 
   var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
-  // The wave phase animates only while traffic flows, but the transition
-  // itself must be created unconditionally — Compose forbids conditional
-  // remember calls.
-  val waveTransition = rememberInfiniteTransition(label = "wave")
-  val animatedPhase =
-      waveTransition.animateFloat(
-          initialValue = 0F,
-          targetValue = 1F,
-          animationSpec =
-              infiniteRepeatable(
-                  animation = tween(durationMillis = 1100, easing = LinearEasing),
-                  repeatMode = RepeatMode.Restart,
-              ),
-          label = "wavePhase",
-      ).value
-  val wavePhase = if (isFlowing) animatedPhase else 0F
+  // The wave phase advances one frame at a time, and ONLY while traffic is
+  // flowing. The previous version used rememberInfiniteTransition, created
+  // unconditionally at first composition — the animation clock stayed
+  // armed even with the hotspot off, and the Robolectric startup gate
+  // hung on it (run 43802686493 stuck 30+ min in the unit-test step).
+  // A frame-driven phase schedules nothing at all while idle.
+  var wavePhase by remember { mutableFloatStateOf(0F) }
+  LaunchedEffect(isFlowing) {
+    if (!isFlowing) {
+      return@LaunchedEffect
+    }
+    var lastNanos = 0L
+    while (true) {
+      withFrameNanos { nanos ->
+        if (lastNanos != 0L) {
+          val dtSeconds = (nanos - lastNanos) / 1_000_000_000F
+          // One full dash cycle per 1.1 seconds, matching the old tween.
+          wavePhase = (wavePhase + dtSeconds / 1.1F) % 1F
+        }
+        lastNanos = nanos
+      }
+    }
+  }
 
   val colors = MaterialTheme.colorScheme
   val wireColor = colors.primary
@@ -173,10 +177,10 @@ internal fun NetworkDiagram(
             wireColor = if (dimmed) mutedColor else wireColor,
         )
 
-        if (isSharing) {
+        if (isSharing && isFlowing) {
           drawWave(
               layout = layout,
-              waveColor = if (isFlowing) liveColor else mutedColor,
+              waveColor = liveColor,
               isFlowing = isFlowing,
               phase = wavePhase,
           )
