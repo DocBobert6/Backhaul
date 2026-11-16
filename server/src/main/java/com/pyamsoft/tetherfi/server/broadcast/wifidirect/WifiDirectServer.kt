@@ -268,6 +268,12 @@ internal constructor(
 
         // Re-throw the cancellation exception
         throw e
+      } catch (e: IllegalArgumentException) {
+        // A validation failure — the config itself is wrong (a
+        // passphrase Android will not accept, for example). Retrying
+        // cannot fix it, so fail right away instead of collecting the
+        // same failure once per attempt.
+        throw e
       } catch (@LintIgnoreTooGenericExceptionCaught e: Exception) {
         // Anything else that could go wrong
         reasons.add(e)
@@ -481,8 +487,11 @@ internal constructor(
   class WifiDirectChannelCreationException :
       RuntimeException("Unable to create Wi-Fi Direct Channel")
 
-  class WifiP2PExceptionCollection(reasons: Collection<Exception>) :
-      RuntimeException("Unable to start Wi-Fi Direct reasons=$reasons")
+  class WifiP2PExceptionCollection(val reasons: Collection<Exception>) :
+      RuntimeException(
+          "Unable to start Wi-Fi Direct reasons=$reasons",
+          reasons.firstOrNull(),
+      )
 
   companion object {
 
