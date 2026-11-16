@@ -17,10 +17,12 @@
 package com.pyamsoft.tetherfi.status.diagram
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,7 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -87,6 +91,30 @@ internal fun SheetDivider(
       thickness = 1.dp,
       color = MaterialTheme.colorScheme.outlineVariant,
   )
+}
+
+/**
+ * A dashed hairline rule, for separating readout rows inside the
+ * diagram sheet — the schematic-sheet language for "these are readings
+ * of the same drawing", as opposed to the solid rule between sections.
+ */
+@Composable
+internal fun SheetDashedDivider(
+    modifier: Modifier = Modifier,
+) {
+  val color = MaterialTheme.colorScheme.outlineVariant
+  Canvas(
+      modifier = modifier.fillMaxWidth().height(1.dp).padding(vertical = 2.dp),
+  ) {
+    val y = size.height / 2F
+    drawLine(
+        color = color,
+        start = Offset(0F, y),
+        end = Offset(size.width, y),
+        strokeWidth = 1.dp.toPx(),
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 4.dp.toPx()), 0F),
+    )
+  }
 }
 
 /**

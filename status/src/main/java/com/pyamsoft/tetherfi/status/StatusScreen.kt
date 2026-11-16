@@ -58,6 +58,7 @@ import com.pyamsoft.tetherfi.server.status.overallStatus
 import com.pyamsoft.tetherfi.status.diagram.ClientNodeDialog
 import com.pyamsoft.tetherfi.status.diagram.DiagramSheet
 import com.pyamsoft.tetherfi.status.diagram.NetworkDiagram
+import com.pyamsoft.tetherfi.status.diagram.SheetDashedDivider
 import com.pyamsoft.tetherfi.status.diagram.SheetDivider
 import com.pyamsoft.tetherfi.status.diagram.SheetReadoutRow
 import com.pyamsoft.tetherfi.status.diagram.SheetSectionHeader
@@ -407,31 +408,34 @@ private fun DiagramContent(
     )
   }
 
-  // Machine readouts, always monospace.
+  // Machine readouts, always monospace — plain words for the keys,
+  // dashed rules between the readings of the same drawing.
   val ssid = rememberServerSSID(group)
   val hostname = rememberServerHostname(connection)
   val portNumber = rememberPortNumber(port)
   SheetReadoutRow(
-      key = stringResource(R.string.viewmode_hotspot_name),
+      key = stringResource(R.string.diagram_readout_network),
       value = ssid,
       valueColor = readoutColor,
   )
+  SheetDashedDivider()
   SheetReadoutRow(
-      key = stringResource(R.string.hotspot_proxy_port),
+      key = stringResource(R.string.diagram_readout_proxy),
       value = "$hostname:$portNumber · ${stringResource(R.string.diagram_proxy_both)}",
       valueColor = readoutColor,
   )
   if (band != null) {
     val bandText =
         when (band) {
-          ServerNetworkBand.LEGACY -> stringResource(R.string.network_bands_legacy_title)
-          ServerNetworkBand.MODERN -> stringResource(R.string.network_bands_modern_title)
-          ServerNetworkBand.MODERN_6 -> stringResource(R.string.network_bands_modern_6_title)
+          ServerNetworkBand.LEGACY -> stringResource(R.string.diagram_band_legacy)
+          ServerNetworkBand.MODERN -> stringResource(R.string.diagram_band_modern)
+          ServerNetworkBand.MODERN_6 -> stringResource(R.string.diagram_band_modern_6)
           null -> ""
         }
     if (bandText.isNotBlank()) {
+      SheetDashedDivider()
       SheetReadoutRow(
-          key = stringResource(R.string.broadcast_frequency),
+          key = stringResource(R.string.diagram_readout_band),
           value = bandText,
           valueColor = readoutColor,
       )

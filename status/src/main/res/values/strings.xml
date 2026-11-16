@@ -40,6 +40,12 @@
   <string name="diagram_breaker_sharing">SHARING</string>
   <string name="diagram_breaker_off">OFF</string>
   <string name="diagram_breaker_error">ERROR</string>
+  <string name="diagram_readout_network">Network</string>
+  <string name="diagram_readout_proxy">Proxy</string>
+  <string name="diagram_readout_band">Band</string>
+  <string name="diagram_band_legacy">2.4 GHz · legacy</string>
+  <string name="diagram_band_modern">5 GHz</string>
+  <string name="diagram_band_modern_6">6 GHz</string>
   <string name="diagram_no_devices">No devices connected</string>
   <string name="diagram_this_device">this device</string>
   <string name="diagram_phone">PHONE</string>
