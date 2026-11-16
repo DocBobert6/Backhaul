@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pyamsoft.tetherfi.server.broadcast.wifidirect.WiFiDirectError
 import com.pyamsoft.tetherfi.server.status.RunningStatus
 
 /**
@@ -135,6 +136,10 @@ private fun PreviewMainTopBarOff() {
 private fun PreviewMainTopBarError() {
   MainTopBar(
       appName = "TEST",
-      overallStatus = RunningStatus.Error(IllegalStateException("TEST")),
+      overallStatus =
+          WiFiDirectError(
+              WiFiDirectError.Reason.Error,
+              IllegalStateException("TEST"),
+          ),
   )
 }
