@@ -49,7 +49,7 @@
   >%1$s needs %2$s permission to create a Wi-Fi Group</string>
   <string
     name="block_permission_reassure"
-  >%1$s will not use these permissions for anything else but Wi-Fi Group creation.</string>
+  >Android requires location permission to create a Wi-Fi Direct group — that is Android&#8217;s rule, not %1$s&#8217;s. %1$s never reads your location and never sends it anywhere.</string>
   <string name="block_permission_open_settings">Open Settings</string>
   <string name="block_permission_deny">Deny</string>
   <string name="block_permission_grant">Grant</string>
