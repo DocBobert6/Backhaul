@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-  <string name="ssid_no_name">NO NAME</string>
-  <string name="server_no_host">NO HOST</string>
+  <string name="ssid_no_name">Not started</string>
+  <string name="server_no_host">—</string>
   <string name="invalid_port">INVALID PORT</string>
 </resources>

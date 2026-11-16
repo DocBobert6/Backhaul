@@ -16,7 +16,5 @@
   ~ limitations under the License.
   -->
 <resources>
-  <string name="ssid_no_name">**無名稱資訊**</string>
-  <string name="server_no_host">**無主機資訊**</string>
   <string name="invalid_port">**無效的通訊埠號**</string>
 </resources>
