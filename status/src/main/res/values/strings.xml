@@ -46,6 +46,7 @@
   <string name="diagram_band_legacy">2.4 GHz · legacy</string>
   <string name="diagram_band_modern">5 GHz</string>
   <string name="diagram_band_modern_6">6 GHz</string>
+  <string name="diagram_editor_port">Proxy port</string>
   <string name="diagram_no_devices">No devices connected</string>
   <string name="diagram_this_device">this device</string>
   <string name="diagram_phone">PHONE</string>

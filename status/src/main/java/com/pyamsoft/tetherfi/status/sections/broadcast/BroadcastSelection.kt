@@ -17,13 +17,13 @@
 package com.pyamsoft.tetherfi.status.sections.broadcast
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,14 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
-import com.pyamsoft.pydroid.ui.defaults.ImageDefaults
 import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
-import com.pyamsoft.tetherfi.ui.checkable.rememberCheckableColor
-import com.pyamsoft.tetherfi.ui.icons.IconPainters
-import com.pyamsoft.tetherfi.ui.rememberCheckableIconColor
 import com.pyamsoft.tetherfi.ui.textAlpha
 
 @Composable
@@ -102,6 +100,11 @@ internal fun <T : Any> BroadcastSelection(
   }
 }
 
+/**
+ * One schematic option row: a thin bordered box. The selected option
+ * has a blue border, a blue title, and a filled dot; the rest are
+ * muted with an open dot. No radio icons.
+ */
 @Composable
 private fun <T : Any> Selectable(
     modifier: Modifier = Modifier,
@@ -113,32 +116,32 @@ private fun <T : Any> Selectable(
 ) {
   val hapticManager = LocalHapticManager.current
   val isSelected = remember(selection, current) { selection == current }
-  val iconColor = rememberCheckableIconColor(isEditable, isSelected)
   val handleResolveStrings by rememberUpdatedState(onResolveStrings)
 
   val strings = remember(selection) { handleResolveStrings(selection) }
   val title = stringResource(strings.title)
   val description = stringResource(strings.description)
 
-  val color by
-      rememberCheckableColor(
-          enabled = isEditable,
-          label = title,
-          condition = isSelected,
-          selectedColor = MaterialTheme.colorScheme.primary,
-      )
+  val colors = MaterialTheme.colorScheme
+  val titleColor = if (isSelected) colors.primary else colors.onSurface
+  val markerColor = if (isSelected) colors.primary else colors.onSurfaceVariant
 
   Column(
       modifier =
           modifier
+              .fillMaxWidth()
+              .padding(vertical = 4.dp)
+              .border(
+                  width = 1.dp,
+                  color = if (isSelected) colors.primary else colors.outlineVariant,
+                  shape = RoundedCornerShape(6.dp),
+              )
               .clickable(enabled = isEditable) {
                 hapticManager?.toggleOn()
                 onClick(selection)
               }
-              .padding(
-                  horizontal = MaterialTheme.keylines.content,
-                  vertical = MaterialTheme.keylines.typography,
-              ),
+              .padding(horizontal = 12.dp, vertical = 10.dp)
+              .alpha(textAlpha(isEditable)),
   ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -149,19 +152,17 @@ private fun <T : Any> Selectable(
           style =
               MaterialTheme.typography.bodyLarge.copy(
                   fontWeight = FontWeight.W700,
-                  color =
-                      color.copy(
-                          alpha = textAlpha(isEditable),
-                      ),
+                  color = titleColor,
               ),
       )
 
-      Icon(
-          modifier = Modifier.size(ImageDefaults.IconSize),
-          painter =
-              if (isSelected) IconPainters.checkCircle() else IconPainters.radioButtonUnchecked(),
-          contentDescription = title,
-          tint = iconColor,
+      Text(
+          text = if (isSelected) "●" else "○",
+          style =
+              MaterialTheme.typography.bodyLarge.copy(
+                  fontWeight = FontWeight.W700,
+                  color = markerColor,
+              ),
       )
     }
 
@@ -170,10 +171,7 @@ private fun <T : Any> Selectable(
         text = description,
         style =
             MaterialTheme.typography.bodySmall.copy(
-                color =
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                        alpha = textAlpha(isEditable),
-                    ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             ),
     )
   }

@@ -16,15 +16,33 @@
 
 package com.pyamsoft.tetherfi.status.sections.network
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+/**
+ * A Carrier schematic-sheet editor: a small-caps label above a thin
+ * bordered box holding the value in monospace — no Material text
+ * field. Same settings, same stored values; presentation only.
+ */
 @Composable
 internal fun StatusEditor(
     modifier: Modifier = Modifier,
@@ -37,29 +55,64 @@ internal fun StatusEditor(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
-  val textStyle =
-      LocalTextStyle.current.copy(
-          fontFamily = FontFamily.Monospace,
-      )
+  Column(
+      modifier = modifier.alpha(if (enabled) 1F else 0.38F),
+  ) {
+    Text(
+        text = title.uppercase(),
+        style =
+            MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+    )
 
-  val label =
-      @Composable {
-        Text(
-            text = title,
+    Box(
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(top = 4.dp)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(6.dp),
+                )
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+    ) {
+      Row(
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        if (leadingIcon != null) {
+          Box(
+              modifier = Modifier.padding(end = 8.dp),
+          ) {
+            leadingIcon()
+          }
+        }
+
+        BasicTextField(
+            modifier = Modifier.weight(1F),
+            value = value,
+            onValueChange = onChange,
+            enabled = enabled,
+            singleLine = true,
+            textStyle =
+                LocalTextStyle.current.copy(
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
         )
-      }
 
-  OutlinedTextField(
-      modifier = modifier,
-      enabled = enabled,
-      keyboardOptions = keyboardOptions,
-      value = value,
-      textStyle = textStyle,
-      visualTransformation = visualTransformation,
-      onValueChange = onChange,
-      leadingIcon = leadingIcon,
-      trailingIcon = trailingIcon,
-      singleLine = true,
-      label = label,
-  )
+        if (trailingIcon != null) {
+          Box(
+              modifier = Modifier.padding(start = 8.dp),
+          ) {
+            trailingIcon()
+          }
+        }
+      }
+    }
+  }
 }

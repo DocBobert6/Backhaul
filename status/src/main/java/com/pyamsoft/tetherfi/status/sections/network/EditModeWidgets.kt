@@ -99,7 +99,7 @@ internal fun EditHttpPort(
   EditPort(
       modifier = modifier,
       port = port,
-      portLabelRes = R.string.hotspot_proxy_port,
+      portLabelRes = R.string.diagram_editor_port,
       onPortChanged = onPortChanged,
   )
 }
@@ -151,7 +151,7 @@ internal fun EditPassword(
       if (canUseCustomConfig) {
         {
           Row(
-              modifier = Modifier.padding(horizontal = MaterialTheme.keylines.content),
+              modifier = Modifier.padding(start = MaterialTheme.keylines.typography),
               verticalAlignment = Alignment.CenterVertically,
           ) {
             IconToggleButton(
@@ -262,7 +262,6 @@ internal fun EditSsid(
           Text(
               modifier =
                   Modifier.padding(
-                      start = MaterialTheme.keylines.content,
                       end = MaterialTheme.keylines.typography,
                   ),
               text = remember { ServerDefaults.WIFI_SSID_PREFIX },
