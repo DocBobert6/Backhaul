@@ -29,10 +29,10 @@
   <string name="connection_none">No connections yet!</string>
   <string
     name="connection_start_before_manage"
-  >Start the Hotspot to view and manage connected devices.</string>
+  >Start Backhaul to view and manage connected devices.</string>
   <string
     name="connection_running_explain"
-  >By default, any connecting client is allowed to access the Internet through the Hotspot. If you want to block a client from the network, you can toggle the switch off for the IP address you wish to restrict.</string>
+  >By default, any connecting client is allowed to access the Internet through Backhaul. If you want to block a client from the network, you can toggle the switch off for the IP address you wish to restrict.</string>
 
   <string name="option_set_nickname">Set Nick Name</string>
 
