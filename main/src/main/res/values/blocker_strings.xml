@@ -57,6 +57,12 @@
   <string name="block_permission_type_nearby">NEARBY WIFI</string>
   <string name="block_permission_type_local_network">LOCAL NETWORK</string>
 
+  <string name="block_password_title">Hotspot password too short</string>
+  <string
+    name="block_password_description"
+  >Your saved hotspot password is too short. Android needs a password of 8 to 63 characters to start a Wi-Fi Direct group. Generate a new one and try again.</string>
+  <string name="block_password_generate">Generate a new password</string>
+
   <string name="block_background_data_open_settings">Open Settings</string>
 
   <!-- TODO(Peter): Need zh-rTW translation -->

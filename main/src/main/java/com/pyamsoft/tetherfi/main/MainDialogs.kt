@@ -33,6 +33,7 @@ import com.pyamsoft.pydroid.core.cast
 import com.pyamsoft.pydroid.ui.util.collectAsStateListWithLifecycle
 import com.pyamsoft.tetherfi.main.blockers.BackgroundDataBlocker
 import com.pyamsoft.tetherfi.main.blockers.LocationBlocker
+import com.pyamsoft.tetherfi.main.blockers.PasswordBlocker
 import com.pyamsoft.tetherfi.main.blockers.PermissionBlocker
 import com.pyamsoft.tetherfi.main.blockers.VpnBlocker
 import com.pyamsoft.tetherfi.main.blockers.WifiBlocker
@@ -56,6 +57,9 @@ fun MainDialogs(
     // Permission
     onOpenPermissionSettings: () -> Unit,
     onRequestPermissions: () -> Unit,
+
+    // Password
+    onGeneratePassword: () -> Unit,
 
     // Location
     onOpenLocationSettings: () -> Unit,
@@ -96,6 +100,7 @@ fun MainDialogs(
       skippableBlockers = skippableBlockers,
       appName = appName,
       onRequestPermissions = onRequestPermissions,
+      onGeneratePassword = onGeneratePassword,
       onDismissBlocker = onDismissBlocker,
       onOpenLocationSettings = onOpenLocationSettings,
       onOpenPermissionSettings = onOpenPermissionSettings,
@@ -192,6 +197,9 @@ private fun ShowBlockers(
     onOpenPermissionSettings: () -> Unit,
     onRequestPermissions: () -> Unit,
 
+    // Password
+    onGeneratePassword: () -> Unit,
+
     // Location
     onOpenLocationSettings: () -> Unit,
 
@@ -214,6 +222,13 @@ private fun ShowBlockers(
             onDismiss = { onDismissBlocker(blocker) },
             onOpenPermissionSettings = onOpenPermissionSettings,
             onRequestPermissions = onRequestPermissions,
+        )
+      }
+      HotspotStartBlocker.PASSWORD -> {
+        PasswordBlocker(
+            modifier = modifier,
+            onDismiss = { onDismissBlocker(blocker) },
+            onGeneratePassword = onGeneratePassword,
         )
       }
       HotspotStartBlocker.VPN -> {
@@ -360,6 +375,7 @@ private fun PreviewMainDialogs(blockers: Collection<HotspotStartBlocker>) {
       appName = "TEST",
       onDismissBlocker = {},
       onRequestPermissions = {},
+      onGeneratePassword = {},
       onHideProxyError = {},
       onHideHotspotError = {},
       onHideNetworkError = {},
@@ -370,6 +386,12 @@ private fun PreviewMainDialogs(blockers: Collection<HotspotStartBlocker>) {
       onOpenBackroundDataSettings = {},
       onOpenWifiSettings = {},
   )
+}
+
+@Preview
+@Composable
+private fun PreviewMainDialogsBlockPassword() {
+  PreviewMainDialogs(blockers = setOf(HotspotStartBlocker.PASSWORD))
 }
 
 @Preview

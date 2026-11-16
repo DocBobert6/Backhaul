@@ -98,6 +98,10 @@ private class FakeWifiPreferences : WifiPreferences {
     setPasswordCalls.add(password)
   }
 
+  override suspend fun repairPasswordIfInvalid(): String {
+    return "password"
+  }
+
   override fun listenForNetworkBandChanges(): Flow<ServerNetworkBand> =
       MutableStateFlow(ServerNetworkBand.LEGACY)
 

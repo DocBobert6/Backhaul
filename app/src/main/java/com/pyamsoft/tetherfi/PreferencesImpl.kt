@@ -16,7 +16,6 @@
 
 package com.pyamsoft.tetherfi
 
-import androidx.annotation.CheckResult
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -36,15 +35,16 @@ import com.pyamsoft.tetherfi.server.ServerNetworkBand
 import com.pyamsoft.tetherfi.server.ServerSocketTimeout
 import com.pyamsoft.tetherfi.server.StatusPreferences
 import com.pyamsoft.tetherfi.server.TweakPreferences
+import com.pyamsoft.tetherfi.server.WifiPassword
 import com.pyamsoft.tetherfi.server.WifiPreferences
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastType
 import com.pyamsoft.tetherfi.server.network.PreferredNetwork
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -71,7 +71,7 @@ internal constructor(
   }
 
   // Keep this lazy so that the fallback password is always the same
-  private val fallbackPassword by lazy { PasswordGenerator.generate() }
+  private val fallbackPassword by lazy { WifiPassword.generate() }
 
   private fun onClearOldPreferences(store: DataStore<Preferences>) {
     appScope.launch(context = dispatchers.io) {
@@ -130,6 +130,18 @@ internal constructor(
           fallbackValue = fallbackPassword,
           value = { password },
       )
+
+  override suspend fun repairPasswordIfInvalid(): String {
+    val current = listenForPasswordChanges().first()
+    if (WifiPassword.isValid(current)) {
+      return current
+    }
+
+    // A stored password Android will refuse is treated as absent.
+    val fresh = WifiPassword.generate()
+    preferences.edit { it[PreferenceKeys.PASSWORD] = fresh }
+    return fresh
+  }
 
   override fun listenForHttpEnabledChanges(): Flow<Boolean> =
       getPreference(key = PreferenceKeys.IS_HTTP_ENABLED, value = DEFAULT_IS_HTTP_ENABLED)
@@ -282,28 +294,6 @@ internal constructor(
             if (limit.timeoutDuration.isInfinite()) -1 else limit.timeoutDuration.inWholeSeconds
           },
       )
-
-  private object PasswordGenerator {
-
-    private const val ALL_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-    @JvmStatic
-    @CheckResult
-    fun generate(size: Int = 8): String {
-      val chars = ALL_CHARS
-
-      var pass = ""
-      while (true) {
-        pass += chars[Random.nextInt(0, chars.length)]
-
-        // Stop once generated
-        if (pass.length >= size) {
-          break
-        }
-      }
-      return pass
-    }
-  }
 
   companion object {
 

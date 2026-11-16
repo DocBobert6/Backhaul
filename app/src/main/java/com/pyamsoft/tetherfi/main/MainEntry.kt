@@ -234,6 +234,7 @@ fun MainEntry(
           permissionRequestBus.emit(PermissionRequests.Server)
         }
       },
+      onGeneratePassword = { viewModel.handleGeneratePassword() },
       onOpenPermissionSettings = { onLaunchIntent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS) },
       onOpenLocationSettings = { onLaunchIntent(Settings.ACTION_LOCATION_SOURCE_SETTINGS) },
       onOpenBackroundDataSettings = {

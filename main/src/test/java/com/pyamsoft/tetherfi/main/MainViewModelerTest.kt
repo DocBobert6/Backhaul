@@ -24,7 +24,10 @@ import com.pyamsoft.pydroid.util.AppDispatchers
 import com.pyamsoft.tetherfi.core.AppCoroutineScope
 import com.pyamsoft.tetherfi.server.ExpertPreferences
 import com.pyamsoft.tetherfi.server.ProxyPreferences
+import com.pyamsoft.tetherfi.server.ServerNetworkBand
 import com.pyamsoft.tetherfi.server.ServerSocketTimeout
+import com.pyamsoft.tetherfi.server.WifiPassword
+import com.pyamsoft.tetherfi.server.WifiPreferences
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastEvent
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastNetworkStatus
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastNetworkUpdater
@@ -42,6 +45,7 @@ import com.pyamsoft.tetherfi.service.prereq.HotspotStartBlocker
 import com.pyamsoft.tetherfi.ui.ServerPortTypes
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -154,6 +158,37 @@ private class FakeHotspotRequirements(
   override suspend fun blockers(): Collection<HotspotStartBlocker> = blockers
 }
 
+private class FakeWifiPreferences(
+    private val storedPassword: String = "password",
+) : WifiPreferences {
+  var repairCalls = 0
+    private set
+
+  private val password = MutableStateFlow(storedPassword)
+
+  override fun listenForSsidChanges(): Flow<String> = MutableStateFlow("Backhaul")
+
+  override fun setSsid(ssid: String) = Unit
+
+  override fun listenForPasswordChanges(): Flow<String> = password
+
+  override fun setPassword(password: String) {
+    this.password.value = password
+  }
+
+  override suspend fun repairPasswordIfInvalid(): String {
+    repairCalls += 1
+    val repaired = WifiPassword.generate()
+    password.value = repaired
+    return repaired
+  }
+
+  override fun listenForNetworkBandChanges(): Flow<ServerNetworkBand> =
+      MutableStateFlow(ServerNetworkBand.LEGACY)
+
+  override fun setNetworkBand(band: ServerNetworkBand) = Unit
+}
+
 private fun newServiceLauncher(): ServiceLauncher =
     ServiceLauncher(
         context = RuntimeEnvironment.getApplication(),
@@ -172,6 +207,7 @@ private fun newViewModeler(
     broadcastObserver: BroadcastObserver = FakeBroadcastObserver(),
     proxyPreferences: ProxyPreferences = FakeProxyPreferences(),
     expertPreferences: ExpertPreferences = FakeExpertPreferences(),
+    wifiPreferences: WifiPreferences = FakeWifiPreferences(),
     serviceLauncher: ServiceLauncher = newServiceLauncher(),
     appScope: AppCoroutineScope = AppCoroutineScope(appScope = CoroutineScope(Job())),
 ): MainViewModeler =
@@ -185,6 +221,7 @@ private fun newViewModeler(
         broadcastObserver = broadcastObserver,
         proxyPreferences = proxyPreferences,
         expertPreferences = expertPreferences,
+        wifiPreferences = wifiPreferences,
         serviceLauncher = serviceLauncher,
         appScope = appScope,
         dispatchers = dispatchers,
@@ -211,6 +248,62 @@ class MainViewModelerTest {
 
     @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
 
+    assertTrue(state.startBlockers.value.isEmpty())
+    val started = shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedService()
+    assertEquals(TestForegroundService::class.java.name, started?.component?.className)
+  }
+
+  @Test
+  fun `handleToggleProxy shows the password blocker and does not start when the stored password is too short`() =
+      runTest {
+        val state = MutableMainViewState()
+        val networkStatus = FakeBroadcastNetworkStatus(initialStatus = RunningStatus.NotRunning)
+        val backingScope = CoroutineScope(Job())
+        val viewModeler =
+            newViewModeler(
+                state = state,
+                networkStatus = networkStatus,
+                requirements = FakeHotspotRequirements(blockers = emptySet()),
+                wifiPreferences = FakeWifiPreferences(storedPassword = "short"),
+                appScope = AppCoroutineScope(appScope = backingScope),
+                dispatchers = testAppDispatchers(),
+            )
+
+        viewModeler.handleToggleProxy()
+
+        @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+        assertEquals(setOf(HotspotStartBlocker.PASSWORD), state.startBlockers.value)
+        assertNull(shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedService())
+      }
+
+  @Test
+  fun `handleGeneratePassword repairs the password and starts the proxy`() = runTest {
+    val state = MutableMainViewState()
+    val networkStatus = FakeBroadcastNetworkStatus(initialStatus = RunningStatus.NotRunning)
+    val backingScope = CoroutineScope(Job())
+    val wifiPreferences = FakeWifiPreferences(storedPassword = "short")
+    val viewModeler =
+        newViewModeler(
+            state = state,
+            networkStatus = networkStatus,
+            requirements = FakeHotspotRequirements(blockers = emptySet()),
+            wifiPreferences = wifiPreferences,
+            appScope = AppCoroutineScope(appScope = backingScope),
+            dispatchers = testAppDispatchers(),
+        )
+
+    viewModeler.handleToggleProxy()
+
+    @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+    assertEquals(setOf(HotspotStartBlocker.PASSWORD), state.startBlockers.value)
+
+    viewModeler.handleGeneratePassword()
+
+    @OptIn(ExperimentalCoroutinesApi::class) advanceUntilIdle()
+
+    assertEquals(1, wifiPreferences.repairCalls)
     assertTrue(state.startBlockers.value.isEmpty())
     val started = shadowOf(RuntimeEnvironment.getApplication()).peekNextStartedService()
     assertEquals(TestForegroundService::class.java.name, started?.component?.className)

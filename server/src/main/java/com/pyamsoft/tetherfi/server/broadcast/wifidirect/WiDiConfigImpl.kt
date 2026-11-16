@@ -44,7 +44,10 @@ internal constructor(
   @CheckResult
   @RequiresApi(Build.VERSION_CODES.Q)
   private suspend fun getPreferredPassword(): String {
-    return preferences.listenForPasswordChanges().first()
+    // A short stored password is treated as absent and repaired here,
+    // so no start path — app toggle or QS tile — can ever hand Android
+    // a passphrase it will refuse.
+    return preferences.repairPasswordIfInvalid()
   }
 
   @CheckResult

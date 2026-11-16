@@ -154,14 +154,20 @@ internal constructor(
     // Only pull once since after this point, the state will be driven by the input
     wifiPreferences.listenForPasswordChanges().also { f ->
       scope.launch(context = dispatchers.default) {
-        // Only pull once since after this point, the state will be driven by the input
-        val password = f.first()
+        // Watch constantly, not just once: a repair (a short stored
+        // password replaced by a fresh one) must flow back into the
+        // field, or the field would keep showing the password the
+        // hotspot no longer uses.
+        f.collect { password ->
+          // Write the password to save it to Preferences
+          handlePasswordChanged(password)
 
-        // Write the password to save it to Preferences
-        handlePasswordChanged(password)
-
-        config.password = true
-        markPreferencesLoaded(config)
+          // Watch constantly but only update the initial load config if we haven't loaded yet
+          if (s.loadingState.value != StatusViewState.LoadingState.DONE) {
+            config.password = true
+            markPreferencesLoaded(config)
+          }
+        }
       }
     }
 

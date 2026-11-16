@@ -29,6 +29,8 @@ import com.pyamsoft.tetherfi.core.AppCoroutineScope
 import com.pyamsoft.tetherfi.core.Timber
 import com.pyamsoft.tetherfi.server.ExpertPreferences
 import com.pyamsoft.tetherfi.server.ProxyPreferences
+import com.pyamsoft.tetherfi.server.WifiPassword
+import com.pyamsoft.tetherfi.server.WifiPreferences
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastEvent
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastNetworkStatus
 import com.pyamsoft.tetherfi.server.broadcast.BroadcastNetworkUpdater
@@ -45,6 +47,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -61,6 +64,7 @@ internal constructor(
     private val broadcastObserver: BroadcastObserver,
     private val proxyPreferences: ProxyPreferences,
     private val expertPreferences: ExpertPreferences,
+    private val wifiPreferences: WifiPreferences,
     private val serviceLauncher: ServiceLauncher,
     private val appScope: AppCoroutineScope,
     private val dispatchers: AppDispatchers,
@@ -221,8 +225,31 @@ internal constructor(
       return
     }
 
+    // The saved hotspot password must be one Android will accept (8–63
+    // characters). A short password carried over from an older install
+    // used to sail through to WifiP2pConfig.Builder.build() and fail
+    // there as a raw Android exception. Refuse here, in words, and
+    // offer to generate a fresh one instead.
+    val password = wifiPreferences.listenForPasswordChanges().first()
+    if (!WifiPassword.isValid(password)) {
+      Timber.w { "Cannot launch Proxy: saved hotspot password is too short" }
+      state.startBlockers.value = blockers + HotspotStartBlocker.PASSWORD
+      stopProxy()
+      return
+    }
+
     Timber.d { "Starting Proxy..." }
     serviceLauncher.startForeground()
+  }
+
+  fun handleGeneratePassword() {
+    appScope.launch(context = dispatchers.default) {
+      // Repair the stored password first — the write lands before we
+      // retry, so the retry reads the fresh password.
+      wifiPreferences.repairPasswordIfInvalid()
+      state.startBlockers.update { it - HotspotStartBlocker.PASSWORD }
+      startProxy()
+    }
   }
 
   private fun stopProxy() {

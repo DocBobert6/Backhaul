@@ -29,6 +29,16 @@ interface WifiPreferences {
 
   fun setPassword(password: String)
 
+  /**
+   * Read the stored password, repairing it first if it is not one
+   * Android will accept (8–63 characters). A short password carried
+   * over from an older install is treated as absent: a fresh password
+   * is generated, stored, and returned. The write lands before this
+   * returns, so a caller that starts the hotspot right after reads the
+   * fresh password.
+   */
+  suspend fun repairPasswordIfInvalid(): String
+
   @CheckResult fun listenForNetworkBandChanges(): Flow<ServerNetworkBand>
 
   fun setNetworkBand(band: ServerNetworkBand)
